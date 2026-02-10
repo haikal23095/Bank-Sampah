@@ -14,18 +14,18 @@ class TransactionFactory extends Factory
 
     public function definition(): array
     {
-        $type = fake()->randomElement(['deposit', 'withdrawal']);
-        $status = fake()->randomElement(['pending', 'completed', 'failed']);
+        $type = $this->faker->randomElement(['DEPOSIT', 'WITHDRAWAL']);
+        $status = $this->faker->randomElement(['PENDING', 'SUCCESS', 'FAILED']);
 
         return [
             'user_id' => null,
             'staff_id' => null,
-            'date' => fake()->dateTimeBetween('-1 years', 'now'),
+            'date' => $this->faker->dateTimeBetween('-1 years', 'now'),
             'type' => $type,
             'total_amount' => 0,
             'total_weight' => 0,
             'status' => $status,
-            'method' => fake()->randomElement(['cash', 'transfer']),
+            'method' => $this->faker->randomElement(['CASH', 'TRANSFER']),
             'admin_note' => null,
         ];
     }

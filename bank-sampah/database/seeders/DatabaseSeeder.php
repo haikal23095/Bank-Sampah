@@ -37,6 +37,16 @@ class DatabaseSeeder extends Seeder
             'join_date' => now()->toDateString(),
         ]);
 
+        // Create a default admin account for local/dev use
+        $adminUser = User::firstOrCreate([
+            'email' => 'admin@example.com',
+        ], [
+            'name' => 'Administrator',
+            'password' => bcrypt('password'),
+            'role' => 'ADMIN',
+            'join_date' => now()->toDateString(),
+        ]);
+
         // Create other users
         $users = User::factory()->count(20)->create();
 
