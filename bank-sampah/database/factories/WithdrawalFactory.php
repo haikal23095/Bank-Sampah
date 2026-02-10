@@ -3,29 +3,27 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Transaction;
+use App\Models\Withdrawal;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Transaction>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Withdrawal>
  */
-class TransactionFactory extends Factory
+class WithdrawalFactory extends Factory
 {
-    protected $model = Transaction::class;
+    protected $model = Withdrawal::class;
 
     public function definition(): array
     {
-        $type = $this->faker->randomElement(['DEPOSIT', 'WITHDRAWAL']);
         $status = $this->faker->randomElement(['PENDING', 'SUCCESS', 'FAILED']);
 
         return [
             'user_id' => null,
             'staff_id' => null,
             'date' => $this->faker->dateTimeBetween('-1 years', 'now'),
-            'type' => $type,
-            'total_amount' => 0,
-            'total_weight' => 0,
+            'amount' => $this->faker->randomFloat(2, 10000, 200000),
             'status' => $status,
-            'admin_note' => null,
+            'method' => $this->faker->randomElement(['CASH', 'TRANSFER']),
+            'admin_note' => $this->faker->optional()->sentence(),
         ];
     }
 }
