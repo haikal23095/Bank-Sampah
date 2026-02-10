@@ -3,8 +3,10 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardController;
+use App\Http\Controllers\Admin\DepositController;
+use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\HistoryController;
 
 
 // Redirect root to login (use relative path to avoid absolute host:port generation)
@@ -31,6 +33,16 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- FITUR SETOR SAMPAH ---
     Route::get('/setor-sampah', [DepositController::class, 'create'])->name('admin.deposits.create');
     Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store');
+
+    // --- FITUR KELOLA NASABAH ---
+    Route::get('/nasabah', [CustomerController::class, 'index'])->name('admin.customers.index');
+    Route::post('/nasabah', [CustomerController::class, 'store'])->name('admin.customers.store');
+    Route::put('/nasabah/{id}', [CustomerController::class, 'update'])->name('admin.customers.update');
+    Route::delete('/nasabah/{id}', [CustomerController::class, 'destroy'])->name('admin.customers.destroy');
+
+    // --- FITUR RIWAYAT TRANSAKSI ---
+    Route::get('/riwayat', [HistoryController::class, 'index'])->name('admin.history.index');
+    Route::get('/riwayat/{id}', [HistoryController::class, 'show'])->name('admin.history.show');
 });
 
 // 2. Grup Khusus NASABAH
