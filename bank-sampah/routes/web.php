@@ -33,10 +33,11 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store');
 });
 
-// 2. Grup Khusus NASABAH
+// Grup Khusus NASABAH
 // Middleware 'auth' memastikan login, 'role:nasabah' memastikan dia nasabah
 Route::middleware(['auth', 'role:nasabah'])->prefix('nasabah')->group(function () {
-    
+    Route::get('/', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
+
     Route::get('/dashboard', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
 
     // Nanti tambahkan route lain di sini, misal:

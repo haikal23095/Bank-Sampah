@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@title('Dashboard Nasabah')
+@section('title', 'Dashboard Nasabah')
 
 @section('content')
 <div class="max-w-6xl mx-auto">
@@ -46,45 +46,5 @@
         </div>
     </div>
 
-    <!-- Recent Transactions -->
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100">
-        <div class="p-6 border-b border-gray-50">
-            <h3 class="font-bold text-gray-800">Riwayat Transaksi Terakhir</h3>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="text-gray-400 text-sm uppercase">
-                        <th class="px-6 py-4 font-medium">Tanggal</th>
-                        <th class="px-6 py-4 font-medium">Jenis</th>
-                        <th class="px-6 py-4 font-medium">Berat/Nominal</th>
-                        <th class="px-6 py-4 font-medium">Status</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-50">
-                    @forelse($latestTransactions as $tx)
-                        <tr>
-                            <td class="px-6 py-4 text-sm text-gray-600">{{ $tx->created_at->format('d M Y') }}</td>
-                            <td class="px-6 py-4 text-sm">
-                                <span class="px-2 py-1 rounded-lg text-xs {{ $tx->type == 'DEPOSIT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                    {{ $tx->type }}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-sm font-semibold text-gray-800">
-                                {{ $tx->type == 'DEPOSIT' ? $tx->total_weight . ' kg' : 'Rp ' . number_format($tx->total_amount) }}
-                            </td>
-                            <td class="px-6 py-4">
-                                <span class="text-xs text-green-500 font-medium capitalize">{{ $tx->status }}</span>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="4" class="px-6 py-10 text-center text-gray-400">Belum ada transaksi.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-    </div>
 </div>
 @endsection
