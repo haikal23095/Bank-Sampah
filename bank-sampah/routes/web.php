@@ -43,6 +43,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- FITUR RIWAYAT TRANSAKSI ---
     Route::get('/riwayat', [HistoryController::class, 'index'])->name('admin.history.index');
     Route::get('/riwayat/{id}', [HistoryController::class, 'show'])->name('admin.history.show');
+
+    // --- FITUR KATALOG SAMPAH ---
+    Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
+    Route::post('/katalog/kategori', [CatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
+    Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
 });
 
 // 2. Grup Khusus NASABAH
