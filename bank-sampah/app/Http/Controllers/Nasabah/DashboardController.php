@@ -18,10 +18,10 @@ class DashboardController extends Controller
         // Memuat relasi wallet secara eager
         $user->load('wallet');
 
-        // Hitung total berat yang pernah disetor
+        // Hitung total berat yang pernah disetor (sum subtotal di transaction_details)
         $totalWeight = $user->transactions()
-            ->where('type', 'DEPOSIT')
-            ->sum('total_weight');
+            ->join('transaction_details', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->sum('transaction_details.subtotal');
 
         // Hitung total transaksi
         $totalTransactions = $user->transactions()->count();
@@ -52,8 +52,6 @@ class DashboardController extends Controller
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
             $subtotal = Transaction::where('user_id', $userId)
-                ->where('type', 'DEPOSIT')
-                ->where('status', 'SUCCESS')
                 ->whereDate('date', $date)
                 ->with('details')
                 ->get()
@@ -79,8 +77,6 @@ class DashboardController extends Controller
             $endDate = Carbon::today()->subWeeks($i)->endOfWeek();
 
             $subtotal = Transaction::where('user_id', $userId)
-                ->where('type', 'DEPOSIT')
-                ->where('status', 'SUCCESS')
                 ->whereBetween('date', [$startDate, $endDate])
                 ->with('details')
                 ->get()
@@ -104,16 +100,15 @@ class DashboardController extends Controller
     {
         // Ambil transactions DEPOSIT
         $transactions = Transaction::where('user_id', $userId)
-            ->where('type', 'DEPOSIT')
             ->with('details')
             ->orderBy('created_at', 'desc')
             ->take(10)
             ->get()
             ->map(fn ($transaction) => [
-                'type' => 'DEPOSIT',
                 'title' => 'Menyetor sampah',
                 'amount' => $transaction->details->sum('subtotal'),
                 'created_at' => $transaction->created_at,
+                'status' => '',
             ]);
 
         // Ambil withdrawals
@@ -122,10 +117,10 @@ class DashboardController extends Controller
             ->take(10)
             ->get()
             ->map(fn ($withdrawal) => [
-                'type' => 'WITHDRAWAL',
                 'title' => 'Menarik saldo',
                 'amount' => $withdrawal->amount,
                 'created_at' => $withdrawal->created_at,
+                'status' => $withdrawal->status,
             ]);
 
         // Gabung dan sort by created_at descending

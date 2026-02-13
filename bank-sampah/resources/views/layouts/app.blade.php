@@ -63,7 +63,7 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             Riwayat
                         </a>
-                        <a href="#" class="flex items-center gap-3 px-8 py-3 text-sm font-medium text-gray-500 hover:text-green-600 hover:bg-green-50">
+                        <a href="{{ route('nasabah.withdraw.index') }}" class="flex items-center gap-3 px-8 py-3 text-sm font-medium {{ request()->routeIs('nasabah.withdraw.*') ? 'active-nav' : 'text-gray-500 hover:text-green-600 hover:bg-green-50' }}">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                             Tarik Saldo
                         </a>
