@@ -1,15 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardController;
-use App\Http\Controllers\Admin\DepositController;
+use App\Http\Controllers\Admin\CatalogController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Admin\HistoryController;
 use App\Http\Controllers\Admin\WithdrawalController;
-use App\Http\Controllers\Admin\CatalogController;
-
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardController;
+use Illuminate\Support\Facades\Route;
 
 // Redirect root to login (use relative path to avoid absolute host:port generation)
 Route::get('/', function () {
@@ -24,8 +23,6 @@ Route::middleware('guest')->group(function () {
 
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
-
-
 
 // Halaman Dashboard (Perlu Login)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
@@ -46,12 +43,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::get('/riwayat', [HistoryController::class, 'index'])->name('admin.history.index');
     Route::get('/riwayat/{id}', [HistoryController::class, 'show'])->name('admin.history.show');
 
-    // --- FITUR KATALOG SAMPAH ---
-    Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
-    Route::post('/katalog/kategori', [CatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
-    Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
-    Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
-
     // --- FITUR PENARIKAN SALDO ---
     Route::get('/penarikan', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
     Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
@@ -61,6 +52,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Katalog
     Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
     Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::post('/katalog/category', [CatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
+    Route::put('/katalog/category/{id}', [CatalogController::class, 'updateCategory'])->name('admin.catalog.updateCategory');
+    Route::delete('/katalog/category/{id}', [CatalogController::class, 'destroyCategory'])->name('admin.catalog.destroyCategory');
     Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
 });
 
