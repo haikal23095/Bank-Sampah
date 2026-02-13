@@ -52,9 +52,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/penarikan/{id}/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
     Route::post('/penarikan/{id}/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
 
-    // --- FITUR KATALOG SAMPAH ---
+    // Katalog
     Route::get('/katalog', [AdminCatalogController::class, 'index'])->name('admin.catalog.index');
     Route::post('/katalog/item', [AdminCatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::post('/katalog/category', [AdminCatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
+    Route::put('/katalog/category/{id}', [AdminCatalogController::class, 'updateCategory'])->name('admin.catalog.updateCategory');
+    Route::delete('/katalog/category/{id}', [AdminCatalogController::class, 'destroyCategory'])->name('admin.catalog.destroyCategory');
     Route::delete('/katalog/item/{id}', [AdminCatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
 });
 
