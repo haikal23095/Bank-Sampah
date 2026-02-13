@@ -1,13 +1,14 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardController;
-use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Admin\HistoryController;
-
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Nasabah\CatalogController;
+use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardController;
+use App\Http\Controllers\Nasabah\HistoryController as NasabahHistoryController;
+use Illuminate\Support\Facades\Route;
 
 // Redirect root to login (use relative path to avoid absolute host:port generation)
 Route::get('/', function () {
@@ -23,11 +24,9 @@ Route::middleware('guest')->group(function () {
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-
-
 // Halaman Dashboard (Perlu Login)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    
+
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
     // --- FITUR SETOR SAMPAH ---
@@ -43,21 +42,22 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- FITUR RIWAYAT TRANSAKSI ---
     Route::get('/riwayat', [HistoryController::class, 'index'])->name('admin.history.index');
     Route::get('/riwayat/{id}', [HistoryController::class, 'show'])->name('admin.history.show');
-
-    // --- FITUR KATALOG SAMPAH ---
-    Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
-    Route::post('/katalog/kategori', [CatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
-    Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
-    Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
 });
 
 // Grup Khusus NASABAH
 // Middleware 'auth' memastikan login, 'role:nasabah' memastikan dia nasabah
-Route::middleware(['auth', 'role:nasabah'])->prefix('nasabah')->group(function () {
-    Route::get('/', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
+Route::middleware(['auth'])->prefix('nasabah')->group(function () {
+    Route::middleware('role:nasabah')->group(function () {
+        // Dashboard routes
+        Route::get('/', [NasabahDashboardController::class, 'index'])->name('nasabah.index');
+        Route::get('/dashboard', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
 
-    Route::get('/dashboard', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
+        // Catalog routes
+        Route::get('/catalog', [CatalogController::class, 'index'])->name('nasabah.catalog.index');
 
-    // Nanti tambahkan route lain di sini, misal:
-    // Route::get('/riwayat', [NasabahController::class, 'history']);
+        // History routes
+        Route::get('/riwayat', [NasabahHistoryController::class, 'index'])->name('nasabah.history.index');
+        Route::get('/riwayat/{id}', [NasabahHistoryController::class, 'show'])->name('nasabah.history.show');
+    });
+
 });
