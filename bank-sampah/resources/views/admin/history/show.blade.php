@@ -17,10 +17,10 @@
                 <h2 class="text-lg font-bold text-gray-800">Transaksi #{{ $transaction->id }}</h2>
                 <p class="text-sm text-gray-500">{{ $transaction->created_at->format('d F Y, H:i') }} WIB</p>
                 <div class="mt-2">
-                    @if($transaction->type == 'DEPOSIT')
+                    @if($transaction->details->isNotEmpty())
                         <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">SETOR SAMPAH</span>
                     @else
-                        <span class="px-3 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">PENARIKAN SALDO</span>
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-full">TRANSAKSI</span>
                     @endif
                 </div>
             </div>
@@ -31,7 +31,7 @@
             </div>
         </div>
 
-        @if($transaction->type == 'DEPOSIT' && $transaction->details->count() > 0)
+        @if($transaction->details->isNotEmpty())
         <div class="px-8 py-6">
             <h3 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">Rincian Sampah</h3>
             <table class="w-full text-left border-collapse">
@@ -48,12 +48,20 @@
                     <tr class="border-b border-gray-50">
                         <td class="py-3 font-medium">{{ $detail->wasteType->name }}</td>
                         <td class="py-3">Rp {{ number_format($detail->wasteType->price_per_kg, 0, ',', '.') }}</td>
-                        <td class="py-3">{{ $detail->weight }} kg</td>
+                        <td class="py-3">{{ number_format($detail->weight, 2) }} kg</td>
                         <td class="py-3 text-right font-bold">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
+
+            <div class="mt-4 flex justify-between items-center">
+                <div class="text-sm text-gray-600">Total Berat: <span class="font-medium text-gray-800">{{ number_format($transaction->total_weight, 2) }} kg</span></div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500 mb-1">Total Transaksi</p>
+                    <p class="text-2xl font-bold text-green-600">Rp {{ number_format($transaction->total_amount, 0, ',', '.') }}</p>
+                </div>
+            </div>
         </div>
         @endif
 

@@ -43,15 +43,11 @@ class DepositController extends Controller
             $totalWeight = 0;
             $totalAmount = 0;
 
-            // B. Buat Header Transaksi
+            // B. Buat Header Transaksi (no type/status/totals stored)
             $transaction = Transaction::create([
                 'user_id' => $request->user_id,
                 'staff_id' => Auth::id(), // Petugas yang login
                 'date' => now()->toDateString(),
-                'type' => 'DEPOSIT',
-                'status' => 'SUCCESS', // Langsung sukses
-                'total_weight' => 0, // Update nanti
-                'total_amount' => 0, // Update nanti
             ]);
 
             // C. Loop Item Sampah
@@ -70,13 +66,7 @@ class DepositController extends Controller
                 $totalAmount += $subtotal;
             }
 
-            // D. Update Transaksi dengan Total Asli
-            $transaction->update([
-                'total_weight' => $totalWeight,
-                'total_amount' => $totalAmount,
-            ]);
-
-            // E. Update Saldo Nasabah (Wallet)
+            // D. Update Saldo Nasabah (Wallet)
             $wallet = Wallet::firstOrCreate(
                 ['user_id' => $request->user_id],
                 ['balance' => 0]

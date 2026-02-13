@@ -15,17 +15,17 @@ class DashboardController extends Controller
         // Memuat relasi wallet secara eager
         $user->load('wallet');
         
-        // Ambil riwayat deposit terakhir
+        // Ambil riwayat deposit terakhir (include details)
         $latestTransactions = $user->transactions()
+            ->with('details')
             ->latest()
             ->take(5)
             ->get();
 
-        // Hitung total berat yang pernah disetor
-        $totalWeight = $user->transactions()
-            ->where('type', 'DEPOSIT')
-            ->where('status', 'SUCCESS')
-            ->sum('total_weight');
+        // Hitung total berat yang pernah disetor (dari details)
+        $totalWeight = \App\Models\TransactionDetail::whereHas('transaction', function($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })->sum('weight');
 
         // Hitung total transaksi
         $totalTransactions = $user->transactions()->count();

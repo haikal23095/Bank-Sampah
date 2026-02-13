@@ -78,12 +78,12 @@
             <div class="space-y-6">
                 @forelse($latestActivities as $activity)
                     <div class="flex gap-4">
-                        <div class="w-2 h-2 mt-2 rounded-full {{ $activity->type == 'DEPOSIT' ? 'bg-green-500' : 'bg-red-500' }}"></div>
+                        <div class="w-2 h-2 mt-2 rounded-full {{ $activity->details->isNotEmpty() ? 'bg-green-500' : 'bg-red-500' }}"></div>
                         <div>
                             <p class="text-sm text-gray-800 font-medium">
                                 {{ $activity->nasabah->name }} 
-                                {{ $activity->type == 'DEPOSIT' ? 'menyetor' : 'menarik' }} 
-                                {{ $activity->type == 'DEPOSIT' ? $activity->total_weight . 'kg sampah' : 'Rp ' . number_format($activity->total_amount, 0, ',', '.') }}
+                                {{ $activity->details->isNotEmpty() ? 'menyetor' : 'menarik' }} 
+                                {{ $activity->details->isNotEmpty() ? $activity->total_weight . 'kg sampah' : 'Rp ' . number_format($activity->total_amount ?? 0, 0, ',', '.') }}
                             </p>
                             <p class="text-xs text-gray-400">{{ $activity->created_at->diffForHumans() }}</p>
                         </div>

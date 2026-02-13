@@ -15,9 +15,9 @@
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                     <th class="px-6 py-4 font-semibold">ID / Tanggal</th>
                     <th class="px-6 py-4 font-semibold">Nasabah</th>
-                    <th class="px-6 py-4 font-semibold">Tipe</th>
-                    <th class="px-6 py-4 font-semibold">Total (Rp)</th>
-                    <th class="px-6 py-4 font-semibold">Status</th>
+                    <th class="px-6 py-4 font-semibold">Total</th>
+                    <th class="px-6 py-4 font-semibold">Metode</th>
+                    <th class="px-6 py-4 font-semibold">Catatan</th>
                     <th class="px-6 py-4 font-semibold text-right">Aksi</th>
                 </tr>
             </thead>
@@ -38,23 +38,19 @@
                         </div>
                     </td>
 
-                    <td class="px-6 py-4">
-                        @if($trx->type == 'DEPOSIT')
-                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">SETOR</span>
+                    <td class="px-6 py-4 font-bold text-gray-800">
+                        @if($trx->details->isNotEmpty())
+                            {{ number_format($trx->total_amount, 0, ',', '.') }} <span class="text-xs text-gray-500">( {{ number_format($trx->total_weight, 2) }} kg )</span>
                         @else
-                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-md">TARIK</span>
+                            Rp {{ number_format($trx->total_amount ?? 0, 0, ',', '.') }}
                         @endif
                     </td>
 
-                    <td class="px-6 py-4 font-bold text-gray-800">
-                        Rp {{ number_format($trx->total_amount, 0, ',', '.') }}
+                    <td class="px-6 py-4 text-sm text-gray-700">
+                        {{ $trx->method ?? '-' }}
                     </td>
 
-                    <td class="px-6 py-4">
-                        <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
-                            {{ $trx->status }}
-                        </span>
-                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-600">{{ Str::limit($trx->admin_note ?? '-', 80) }}</td>
 
                     <td class="px-6 py-4 text-right">
                         <a href="{{ route('admin.history.show', $trx->id) }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center justify-end gap-1">

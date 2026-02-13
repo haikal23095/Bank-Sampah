@@ -7,6 +7,7 @@ use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardControll
 use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\HistoryController;
+use App\Http\Controllers\Admin\WithdrawalController;
 
 
 // Redirect root to login (use relative path to avoid absolute host:port generation)
@@ -49,6 +50,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     Route::post('/katalog/kategori', [CatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
     Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
     Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
+
+    // --- FITUR PENARIKAN SALDO ---
+    Route::get('/penarikan', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
+    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
 });
 
 // 2. Grup Khusus NASABAH

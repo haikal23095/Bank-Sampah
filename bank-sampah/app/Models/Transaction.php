@@ -9,15 +9,34 @@ class Transaction extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'user_id', 'staff_id', 'date', 'type', 'total_amount', 
-        'total_weight', 'status', 'admin_note'
+        'user_id', 'staff_id', 'date', 'admin_note'
     ];
 
     protected $casts = [
         'date' => 'date',
-        'total_amount' => 'float',
-        'total_weight' => 'float',
     ];
+
+    // Derived totals computed from details
+    public function getTotalAmountAttribute()
+    {
+        if ($this->relationLoaded('details')) {
+            return (float) $this->details->sum('subtotal');
+        }
+        return (float) $this->details()->sum('subtotal');
+    }
+
+    public function getTotalWeightAttribute()
+    {
+        if ($this->relationLoaded('details')) {
+            return (float) $this->details->sum('weight');
+        }
+        return (float) $this->details()->sum('weight');
+    }
+
+    public function isDeposit()
+    {
+        return $this->details()->exists();
+    }
 
     // Nasabah pemilik transaksi
     public function nasabah()

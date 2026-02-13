@@ -66,15 +66,15 @@
                         <tr>
                             <td class="px-6 py-4 text-sm text-gray-600">{{ $tx->created_at->format('d M Y') }}</td>
                             <td class="px-6 py-4 text-sm">
-                                <span class="px-2 py-1 rounded-lg text-xs {{ $tx->type == 'DEPOSIT' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
-                                    {{ $tx->type }}
+                                <span class="px-2 py-1 rounded-lg text-xs {{ $tx->details->isNotEmpty() ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700' }}">
+                                    {{ $tx->details->isNotEmpty() ? 'Setoran' : '—' }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-sm font-semibold text-gray-800">
-                                {{ $tx->type == 'DEPOSIT' ? $tx->total_weight . ' kg' : 'Rp ' . number_format($tx->total_amount) }}
+                                {{ $tx->details->isNotEmpty() ? $tx->total_weight . ' kg' : 'Rp ' . number_format($tx->total_amount ?? 0) }}
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-xs text-green-500 font-medium capitalize">{{ $tx->status }}</span>
+                                <span class="text-xs text-gray-500 font-medium">—</span>
                             </td>
                         </tr>
                     @empty

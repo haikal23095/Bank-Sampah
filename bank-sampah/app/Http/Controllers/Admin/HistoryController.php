@@ -11,8 +11,8 @@ class HistoryController extends Controller
     // 1. Menampilkan Daftar Riwayat
     public function index()
     {
-        // Ambil transaksi terbaru, sertakan data nasabah agar tidak query berulang
-        $transactions = Transaction::with('nasabah')
+        // Ambil transaksi terbaru, sertakan data nasabah dan details agar tidak query berulang
+        $transactions = Transaction::with(['nasabah', 'details'])
                         ->latest()
                         ->paginate(10); // 10 data per halaman
 

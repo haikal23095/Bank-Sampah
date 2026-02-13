@@ -20,7 +20,8 @@ class WithdrawalFactory extends Factory
             'user_id' => null,
             'staff_id' => null,
             'date' => $this->faker->dateTimeBetween('-1 years', 'now'),
-            'amount' => $this->faker->randomFloat(2, 10000, 200000),
+            // Amount in Rupiah (integer), using multiples of 1000 and minimum 1000
+            'amount' => $this->faker->numberBetween(1, 200) * 1000,
             'status' => $status,
             'method' => $this->faker->randomElement(['CASH', 'TRANSFER']),
             'admin_note' => $this->faker->optional()->sentence(),
