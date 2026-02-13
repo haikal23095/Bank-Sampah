@@ -9,11 +9,36 @@
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Kelola Permintaan Penarikan</h1>
             <p class="text-gray-500 text-sm mt-1">Tinjau dan proses pengajuan dana nasabah.</p>
+
+            <!-- Filter Tanggal -->
+            <form action="{{ route('admin.withdrawals.index') }}" method="GET" class="flex items-center gap-3 mt-4">
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Dari Tanggal</label>
+                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+                </div>
+                <div class="flex flex-col">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Sampai Tanggal</label>
+                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+                </div>
+                <div class="flex items-end h-full pt-4">
+                    <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-1.5 rounded-lg transition" title="Filter">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                    </button>
+                    @if(request('start_date') || request('end_date'))
+                        <a href="{{ route('admin.withdrawals.index') }}" class="ml-2 text-xs text-red-500 hover:underline mb-2">Reset</a>
+                    @endif
+                </div>
+            </form>
+
+            <div class="mt-6 flex items-center gap-2 text-gray-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span class="text-xs font-medium uppercase tracking-wider">Arsip Penarikan Terbaru</span>
+            </div>
         </div>
         <div class="flex gap-3">
-            <span class="bg-yellow-100 text-yellow-800 px-3 py-2 rounded-lg text-xs font-bold flex items-center">
-                0 Permintaan Menunggu
-            </span>
+            <button onclick="openModal('modalPending')" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-2 rounded-lg text-xs font-bold flex items-center transition">
+                {{ $pendingWithdrawals->count() }} Permintaan Menunggu
+            </button>
             <button onclick="openModal('modalWithdraw')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-md transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Tambah Penarikan
@@ -63,13 +88,19 @@
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $trx->method ?? 'CASH' }}</td>
                         <td class="px-6 py-4 font-bold text-gray-800">Rp {{ number_format($trx->amount, 0, ',', '.') }}</td>
                         <td class="px-6 py-4">
-                            <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">{{ strtoupper($trx->status ?? 'PENDING') }}</span>
+                            @if(($trx->status ?? 'PENDING') === 'SUCCESS')
+                                <span class="px-2 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">BERHASIL</span>
+                            @else
+                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">DITOLAK</span>
+                                @if($trx->admin_note)
+                                    <p class="text-[10px] text-gray-400 mt-1 italic">{{ $trx->admin_note }}</p>
+                                @endif
+                            @endif
                         </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
-            <div class="p-4">{{ $withdrawals->links() }}</div>
         @else
             <div class="flex flex-col items-center justify-center py-20">
                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
@@ -78,6 +109,63 @@
                 <p class="text-gray-500">Belum ada riwayat penarikan.</p>
             </div>
         @endif
+    </div>
+</div>
+
+<div id="modalPending" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden transform transition-all scale-95 opacity-0 modal-content">
+        <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+            <h3 class="text-lg font-bold text-yellow-600 flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Permintaan Penarikan Menunggu
+            </h3>
+            <button onclick="closeModal('modalPending')" class="text-gray-400 hover:text-gray-600">&times;</button>
+        </div>
+
+        <div class="p-6 max-h-[70vh] overflow-y-auto">
+            @if($pendingWithdrawals->count() > 0)
+                <div class="space-y-4">
+                    @foreach($pendingWithdrawals as $pending)
+                        <div class="border border-gray-100 rounded-xl p-4 flex justify-between items-center bg-gray-50">
+                            <div>
+                                <p class="text-sm font-bold text-gray-900">{{ $pending->nasabah->name }}</p>
+                                <p class="text-xs text-gray-500">{{ $pending->created_at->format('d M Y, H:i') }} • {{ $pending->method }}</p>
+                                <p class="text-lg font-black text-blue-600 mt-1">Rp {{ number_format($pending->amount, 0, ',', '.') }}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <form action="{{ route('admin.withdrawals.approve', $pending->id) }}" method="POST" onsubmit="return confirm('Setujui penarikan ini?')">
+                                    @csrf
+                                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition">
+                                        SETUJUI
+                                    </button>
+                                </form>
+                                <button onclick="openRejectModal('{{ route('admin.withdrawals.reject', $pending->id) }}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition">
+                                    TOLAK
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-10 text-gray-400">
+                    <p>Tidak ada permintaan menunggu.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+<div id="modalReject" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0 modal-content">
+        <div class="px-6 py-4 border-b border-gray-100 font-bold text-red-600">Alasan Penolakan</div>
+        <form id="rejectForm" method="POST" class="p-6">
+            @csrf
+            <textarea name="admin_note" required class="w-full border border-gray-300 rounded-lg p-3 text-sm h-32 mb-4" placeholder="Contoh: Saldo tidak mencukupi atau data belum lengkap..."></textarea>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeModal('modalReject')" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold py-2 rounded-lg transition">Batal</button>
+                <button type="submit" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-lg shadow-md transition">Konfirmasi Tolak</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -92,7 +180,7 @@
             <button onclick="closeModal('modalWithdraw')" class="text-gray-400 hover:text-gray-600">&times;</button>
         </div>
 
-        <form action="{{ route('admin.withdrawals.store') }}" method="POST" class="p-6">
+        <form id="withdrawForm" action="{{ route('admin.withdrawals.store') }}" method="POST" class="p-6">
             @csrf
             
             <div class="grid grid-cols-2 gap-4 mb-4">
@@ -101,13 +189,18 @@
                     <select name="user_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
                         <option value="">-- Cari Nasabah --</option>
                         @foreach($nasabahs as $nasabah)
-                            <option value="{{ $nasabah->id }}">{{ $nasabah->name }} (Saldo: Rp {{ number_format($nasabah->wallet->balance ?? 0) }})</option>
+                            <option value="{{ $nasabah->id }}">{{ $nasabah->name }} (Saldo: Rp {{ number_format($nasabah->wallet->balance ?? 0, 0, ',', '.') }})</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nominal (Rp)</label>
-                    <input type="number" name="amount" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none" placeholder="0">
+                    <div class="relative">
+                        <!-- visible, formatted input -->
+                        <input id="amountDisplay" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none" placeholder="0">
+                        <!-- hidden raw numeric value submitted to server -->
+                        <input id="amount" name="amount" type="hidden" value="0">
+                    </div>
                 </div>
             </div>
 
@@ -134,7 +227,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">No. Rekening</label>
-                    <input type="number" name="account_number" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="1234xxx">
+                    <input type="text" name="account_number" inputmode="numeric" pattern="[0-9]*" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="1234xxx">
                 </div>
             </div>
 
@@ -145,9 +238,9 @@
                 </p>
             </div>
 
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-                Konfirmasi & Cetak Nota
+            <button id="withdrawSubmitBtn" type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2">
+                <svg id="withdrawBtnIcon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span id="withdrawBtnText">Konfirmasi & Cetak Nota</span>
             </button>
         </form>
     </div>
@@ -240,6 +333,12 @@
         }, 300);
     }
 
+    function openRejectModal(url) {
+        const form = document.getElementById('rejectForm');
+        form.action = url;
+        openModal('modalReject');
+    }
+
     // --- Logic Toggle Metode Pembayaran ---
     function selectMethod(method) {
         const input = document.getElementById('methodInput');
@@ -265,5 +364,86 @@
             bankInputs.classList.remove('hidden');
         }
     }
+
+    // --- Prevent duplicate submissions + format Nominal (Rp) input ---
+    (function() {
+        const form = document.getElementById('withdrawForm');
+        const btn = document.getElementById('withdrawSubmitBtn');
+        const btnText = document.getElementById('withdrawBtnText');
+        const btnIcon = document.getElementById('withdrawBtnIcon');
+
+        const amountDisplay = document.getElementById('amountDisplay');
+        const amountHidden = document.getElementById('amount');
+
+        if (!form || !btn) return;
+
+        // formatter: keep hidden input numeric, display with '.' every 3 digits
+        const formatDisplay = (raw) => {
+            if (!raw) return '0';
+            return raw.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        };
+
+        const setRawValue = (str) => {
+            const digits = (str || '').toString().replace(/\D/g, '');
+            amountHidden.value = digits === '' ? 0 : parseInt(digits, 10);
+            amountDisplay.value = formatDisplay(digits);
+        };
+
+        // initialize
+        setRawValue(amountHidden.value || '0');
+
+        // on user input: format visually and update hidden field
+        amountDisplay.addEventListener('input', function (e) {
+            const cursorPos = this.selectionStart || this.value.length;
+            const beforeLen = this.value.length;
+
+            setRawValue(this.value);
+
+            // try to preserve cursor position (best-effort)
+            const afterLen = this.value.length;
+            const diff = afterLen - beforeLen;
+            try { this.setSelectionRange(cursorPos + diff, cursorPos + diff); } catch (err) { /* ignore */ }
+        });
+
+        // prevent non-digit paste
+        amountDisplay.addEventListener('paste', function (e) {
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            if (!/^[0-9.,\s]+$/.test(paste)) {
+                e.preventDefault();
+            }
+        });
+
+        form.addEventListener('submit', function (e) {
+            // Ensure hidden amount is numeric before submitting
+            setRawValue(amountDisplay.value);
+
+            // If amount is zero or empty, allow server validation to handle it
+
+            // Prevent duplicate client clicks
+            if (btn.disabled) {
+                e.preventDefault();
+                return;
+            }
+
+            // Disable button and show loading state
+            btn.disabled = true;
+            btn.setAttribute('aria-busy', 'true');
+            btn.classList.add('opacity-70', 'cursor-not-allowed');
+            btnText.textContent = 'Memproses...';
+
+            // Replace icon with a simple spinner
+            btnIcon.innerHTML = '<svg class="animate-spin w-5 h-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>';
+        });
+
+        // Re-enable button if user navigates back or form errors (best-effort)
+        window.addEventListener('pageshow', function () {
+            if (btn) {
+                btn.disabled = false;
+                btn.removeAttribute('aria-busy');
+                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                btnText.textContent = 'Konfirmasi & Cetak Nota';
+            }
+        });
+    })();
 </script>
 @endsection

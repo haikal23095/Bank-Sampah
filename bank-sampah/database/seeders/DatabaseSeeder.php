@@ -63,6 +63,9 @@ class DatabaseSeeder extends Seeder
             ], [
                 // Initial balance in Rupiah (multiples of 1000)
                 'balance' => fake()->numberBetween(0, 500) * 1000,
+            ]);
+        }
+
         $wasteTypes = WasteType::all();
         if ($wasteTypes->isEmpty()) {
             $wasteTypes = WasteType::factory()->count(10)->create();

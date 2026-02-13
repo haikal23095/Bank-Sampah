@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\DepositController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\HistoryController;
 use App\Http\Controllers\Admin\WithdrawalController;
+use App\Http\Controllers\Admin\CatalogController;
 
 
 // Redirect root to login (use relative path to avoid absolute host:port generation)
@@ -28,7 +29,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // Halaman Dashboard (Perlu Login)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
-    
+
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
 
     // --- FITUR SETOR SAMPAH ---
@@ -54,12 +55,19 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- FITUR PENARIKAN SALDO ---
     Route::get('/penarikan', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
     Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
+    Route::post('/penarikan/{id}/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
+    Route::post('/penarikan/{id}/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
+
+    // Katalog
+    Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
+    Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
 });
 
 // 2. Grup Khusus NASABAH
 // Middleware 'auth' memastikan login, 'role:nasabah' memastikan dia nasabah
 Route::middleware(['auth', 'role:nasabah'])->prefix('nasabah')->group(function () {
-    
+
     Route::get('/dashboard', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
 
     // Nanti tambahkan route lain di sini, misal:
