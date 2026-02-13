@@ -16,7 +16,8 @@ class WalletFactory extends Factory
     {
         return [
             'user_id' => null,
-            'balance' => fake()->randomFloat(2, 0, 1000),
+            // Balance in Rupiah (integer-like), using multiples of 1000
+            'balance' => (float) (fake()->numberBetween(0, 500) * 1000),
         ];
     }
 }

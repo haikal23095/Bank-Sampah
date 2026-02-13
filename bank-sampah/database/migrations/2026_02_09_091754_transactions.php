@@ -16,10 +16,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained('users'); // Nasabah
             $table->foreignId('staff_id')->nullable()->constrained('users'); // Petugas yang melayani
             $table->date('date');
-            $table->enum('type', ['DEPOSIT', 'WITHDRAWAL']);
-            $table->decimal('total_amount', 15, 2);
-            $table->decimal('total_weight', 10, 2)->nullable(); // Hanya untuk deposit
-            $table->enum('status', ['PENDING', 'SUCCESS', 'FAILED'])->default('PENDING');
             $table->enum('method', ['CASH', 'TRANSFER'])->nullable();
             $table->text('admin_note')->nullable();
             $table->timestamps();
@@ -31,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        //
+        Schema::dropIfExists('transactions');
     }
 };

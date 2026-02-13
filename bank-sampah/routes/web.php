@@ -9,6 +9,9 @@ use App\Http\Controllers\Nasabah\CatalogController;
 use App\Http\Controllers\Nasabah\DashboardController as NasabahDashboardController;
 use App\Http\Controllers\Nasabah\HistoryController as NasabahHistoryController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\WithdrawalController;
+use App\Http\Controllers\Admin\CatalogController;
+
 
 // Redirect root to login (use relative path to avoid absolute host:port generation)
 Route::get('/', function () {
@@ -42,6 +45,23 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- FITUR RIWAYAT TRANSAKSI ---
     Route::get('/riwayat', [HistoryController::class, 'index'])->name('admin.history.index');
     Route::get('/riwayat/{id}', [HistoryController::class, 'show'])->name('admin.history.show');
+
+    // --- FITUR KATALOG SAMPAH ---
+    Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
+    Route::post('/katalog/kategori', [CatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
+    Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
+
+    // --- FITUR PENARIKAN SALDO ---
+    Route::get('/penarikan', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
+    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
+    Route::post('/penarikan/{id}/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
+    Route::post('/penarikan/{id}/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
+
+    // Katalog
+    Route::get('/katalog', [CatalogController::class, 'index'])->name('admin.catalog.index');
+    Route::post('/katalog/item', [CatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::delete('/katalog/item/{id}', [CatalogController::class, 'destroyType'])->name('admin.catalog.destroyType');
 });
 
 // Grup Khusus NASABAH

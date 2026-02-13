@@ -61,11 +61,11 @@ class DatabaseSeeder extends Seeder
             Wallet::updateOrCreate([
                 'user_id' => $user->id,
             ], [
-                'balance' => fake()->randomFloat(2, 0, 500),
+                // Initial balance in Rupiah (multiples of 1000)
+                'balance' => fake()->numberBetween(0, 500) * 1000,
             ]);
         }
 
-        // Create transactions with details
         $wasteTypes = WasteType::all();
         if ($wasteTypes->isEmpty()) {
             $wasteTypes = WasteType::factory()->count(10)->create();
@@ -99,18 +99,12 @@ class DatabaseSeeder extends Seeder
                     ]);
                 }
 
-                // Recalculate totals
+                // Recalculate totals (derived from details)
                 $totalAmount = TransactionDetail::where('transaction_id', $transaction->id)->sum('subtotal');
-                $totalWeight = TransactionDetail::where('transaction_id', $transaction->id)->sum('weight');
-                $transaction->update([
-                    'total_amount' => $totalAmount,
-                    'total_weight' => $totalWeight,
-                ]);
 
                 // Update wallet balance for deposit/withdrawal
                 $wallet = Wallet::where('user_id', $user->id)->first();
                 if ($wallet) {
-                    // best-effort update; actual type semantics may differ in schema
                     $wallet->increment('balance', $totalAmount);
                 }
             }

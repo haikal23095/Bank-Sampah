@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Wallet;
+use App\Models\TransactionDetail;
+use App\Models\Withdrawal;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -13,18 +15,14 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // 1. Total Sampah (kg) - Only DEPOSIT
-        $totalWeight = Transaction::where('type', 'DEPOSIT')
-            ->where('status', 'SUCCESS')
-            ->sum('total_weight');
+        // 1. Total Sampah (kg) - sum from transaction_details
+        $totalWeight = TransactionDetail::sum('weight');
 
         // 2. Total Saldo Nasabah
         $totalBalance = Wallet::sum('balance');
 
-        // 3. Total Penarikan (Rp)
-        $totalWithdrawal = Transaction::where('type', 'WITHDRAWAL')
-            ->where('status', 'SUCCESS')
-            ->sum('total_amount');
+        // 3. Total Penarikan (Rp) - from withdrawals table
+        $totalWithdrawal = Withdrawal::where('status', 'SUCCESS')->sum('amount');
 
         // 4. Nasabah Aktif
         $activeNasabahCount = User::where('role', 'NASABAH')->count();
@@ -33,10 +31,11 @@ class DashboardController extends Controller
         $last7Days = collect();
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::today()->subDays($i);
-            $weight = Transaction::where('type', 'DEPOSIT')
-                ->where('status', 'SUCCESS')
-                ->whereDate('date', $date)
-                ->sum('total_weight');
+
+            $weight = DB::table('transaction_details')
+                ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+                ->whereDate('transactions.date', $date)
+                ->sum('transaction_details.weight');
             
             $last7Days->push([
                 'day' => $date->translatedFormat('D'),
@@ -44,8 +43,8 @@ class DashboardController extends Controller
             ]);
         }
 
-        // 6. Aktivitas Terakhir
-        $latestActivities = Transaction::with('nasabah')
+        // 6. Aktivitas Terakhir (include details for quick derived totals)
+        $latestActivities = Transaction::with(['nasabah', 'details'])
             ->orderBy('created_at', 'desc')
             ->take(5)
             ->get();
