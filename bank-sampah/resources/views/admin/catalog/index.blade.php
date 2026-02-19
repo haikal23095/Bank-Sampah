@@ -127,7 +127,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1.5">Harga (Rp)</label>
                     <input type="number" name="price_per_kg" required placeholder="0" 

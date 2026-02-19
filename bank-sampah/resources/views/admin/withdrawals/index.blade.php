@@ -26,44 +26,46 @@
         </div>
     </div>
 
-    <div class="flex justify-between items-center mb-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Kelola Permintaan Penarikan</h1>
             <p class="text-gray-500 text-sm mt-1">Tinjau dan proses pengajuan dana nasabah.</p>
-
-            <!-- Filter Tanggal -->
-            <form action="{{ route('admin.withdrawals.index') }}" method="GET" class="flex items-center gap-3 mt-4">
-                <div class="flex flex-col">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Dari Tanggal</label>
-                    <input type="date" name="start_date" value="{{ request('start_date') }}" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
-                </div>
-                <div class="flex flex-col">
-                    <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Sampai Tanggal</label>
-                    <input type="date" name="end_date" value="{{ request('end_date') }}" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
-                </div>
-                <div class="flex items-end h-full pt-4">
-                    <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-1.5 rounded-lg transition" title="Filter">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                    </button>
-                    @if(request('start_date') || request('end_date'))
-                        <a href="{{ route('admin.withdrawals.index') }}" class="ml-2 text-xs text-red-500 hover:underline mb-2">Reset</a>
-                    @endif
-                </div>
-            </form>
-
-            <div class="mt-6 flex items-center gap-2 text-gray-400">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span class="text-xs font-medium uppercase tracking-wider">Arsip Penarikan Terbaru</span>
-            </div>
         </div>
-        <div class="flex gap-3">
-            <button onclick="openModal('modalPending')" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-3 py-2 rounded-lg text-xs font-bold flex items-center transition">
+        <div class="flex flex-wrap gap-3 w-full md:w-auto">
+            <button onclick="openModal('modalPending')" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center transition shadow-sm flex-1 md:flex-none justify-center">
                 {{ $pendingWithdrawals->count() }} Permintaan Menunggu
             </button>
-            <button onclick="openModal('modalWithdraw')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium flex items-center gap-2 shadow-md transition">
+            <button onclick="openModal('modalWithdraw')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 shadow-lg shadow-blue-100 transition active:scale-95 flex-1 md:flex-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                 Tambah Penarikan
             </button>
+        </div>
+    </div>
+
+    <div class="mb-8">
+        <!-- Filter Tanggal -->
+        <form action="{{ route('admin.withdrawals.index') }}" method="GET" class="flex flex-wrap items-end gap-3 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+            <div class="flex flex-col w-full sm:w-auto">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Dari Tanggal</label>
+                <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+            </div>
+            <div class="flex flex-col w-full sm:w-auto">
+                <label class="text-[10px] font-bold text-gray-400 uppercase ml-1 mb-1">Sampai Tanggal</label>
+                <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition shadow-md shadow-blue-50" title="Filter">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                </button>
+                @if(request('start_date') || request('end_date'))
+                    <a href="{{ route('admin.withdrawals.index') }}" class="text-xs text-red-500 font-bold hover:underline">Reset</a>
+                @endif
+            </div>
+        </form>
+
+        <div class="mt-4 flex items-center gap-2 text-gray-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-[10px] font-black uppercase tracking-widest">Arsip Penarikan Terbaru</span>
         </div>
     </div>
 
@@ -223,7 +225,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div class="col-span-1 relative" id="nasabah-search-container">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Nasabah</label>
                     <div class="relative">

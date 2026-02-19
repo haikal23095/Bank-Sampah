@@ -9,12 +9,12 @@
         @csrf
         
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
-            <div class="flex justify-between items-center border-b border-gray-100 pb-4 mb-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-100 pb-4 mb-4 gap-3">
                 <div>
                     <h2 class="text-xl font-bold text-gray-800">Form Setoran Sampah</h2>
                     <p class="text-gray-500 text-sm">Input data penimbangan sampah nasabah di sini.</p>
                 </div>
-                <div class="bg-green-50 text-green-700 px-4 py-2 rounded-lg font-bold text-lg">
+                <div class="bg-green-50 text-green-700 px-4 py-2 rounded-lg font-bold text-lg w-full md:w-auto text-center">
                     Total: <span id="displayTotalRp">Rp 0</span>
                 </div>
             </div>
@@ -50,36 +50,38 @@
             </div>
 
             <div id="items-container" class="space-y-3">
-                <div class="item-row grid grid-cols-12 gap-4 items-end bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    <div class="col-span-5 relative waste-search-container">
+                <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-end bg-gray-50 p-3 rounded-lg border border-gray-100 relative">
+                    <div class="col-span-1 md:col-span-5 relative waste-search-container">
                         <label class="text-xs text-gray-500 mb-1 block">Jenis Sampah</label>
                         <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" required>
                         <input type="hidden" name="items[0][waste_type_id]" class="waste-type-id" required data-price="0">
                         <div class="waste-results hidden absolute z-40 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto"></div>
                     </div>
-                    <div class="col-span-3">
-                        <label class="text-xs text-gray-500 mb-1 block">Berat (kg)</label>
+                    <div class="col-span-1 md:col-span-3">
+                        <label class="text-xs text-gray-500 mb-1 block">Berat (kg/liter/pcs)</label>
                         <input type="number" step="0.1" name="items[0][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
                     </div>
-                    <div class="col-span-3">
+                    <div class="col-span-1 md:col-span-3">
                         <label class="text-xs text-gray-500 mb-1 block">Subtotal</label>
                         <input type="text" class="subtotal-display w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" value="Rp 0" readonly>
                     </div>
-                    <div class="col-span-1 flex justify-center pb-2">
-                        </div>
+                    <div class="hidden md:block md:col-span-1 flex justify-center pb-2">
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center">
-                <div>
-                    <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Total Berat</p>
-                    <p class="text-xl font-bold text-gray-800" id="totalWeightDisplay">0.00 kg</p>
+            <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div class="flex gap-10">
+                    <div>
+                        <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold text-[10px]">Total Berat</p>
+                        <p class="text-xl font-bold text-gray-800" id="totalWeightDisplay">0.00 kg</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold text-[10px]">Total Saldo Masuk</p>
+                        <p class="text-xl font-bold text-green-600" id="totalAmountDisplay">Rp 0</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-gray-500 text-xs uppercase tracking-wider font-semibold">Total Saldo Masuk</p>
-                    <p class="text-xl font-bold text-green-600" id="totalAmountDisplay">Rp 0</p>
-                </div>
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg shadow-md font-medium flex items-center gap-2 transition">
+                <button type="submit" class="w-full md:w-auto bg-green-600 hover:bg-green-700 text-white px-8 py-3.5 rounded-xl shadow-lg font-bold flex items-center justify-center gap-2 transition active:scale-95 shadow-green-100">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
                     Simpan Transaksi
                 </button>
@@ -161,20 +163,23 @@
         const index = itemCount++;
         
         const html = `
-            <div class="item-row grid grid-cols-12 gap-4 items-end bg-gray-50 p-3 rounded-lg border border-gray-100 mt-2" id="row-${index}">
-                <div class="col-span-5 relative waste-search-container">
-                    <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" required>
+            <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-end bg-gray-50 p-4 rounded-xl border border-gray-100 mt-4 relative" id="row-${index}">
+                <div class="col-span-1 md:col-span-5 relative waste-search-container">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Jenis Sampah</label>
+                    <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" required>
                     <input type="hidden" name="items[${index}][waste_type_id]" class="waste-type-id" required data-price="0">
                     <div class="waste-results hidden absolute z-40 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto"></div>
                 </div>
-                <div class="col-span-3">
-                    <input type="number" step="0.1" name="items[${index}][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
+                <div class="col-span-1 md:col-span-3">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Berat</label>
+                    <input type="number" step="0.1" name="items[${index}][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
                 </div>
-                <div class="col-span-3">
-                    <input type="text" class="subtotal-display w-full bg-gray-200 border border-gray-300 rounded px-3 py-2 text-sm text-gray-700 cursor-not-allowed" value="Rp 0" readonly>
+                <div class="col-span-1 md:col-span-3">
+                    <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Subtotal</label>
+                    <input type="text" class="subtotal-display w-full bg-gray-200 border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 cursor-not-allowed font-medium" value="Rp 0" readonly>
                 </div>
-                <div class="col-span-1 flex justify-center pb-1">
-                    <button type="button" onclick="removeRow(${index})" class="text-red-500 hover:text-red-700 p-1">
+                <div class="absolute top-2 right-2 md:relative md:top-auto md:right-auto md:col-span-1 flex justify-center">
+                    <button type="button" onclick="removeRow(${index})" class="text-gray-300 hover:text-red-500 p-1.5 rounded-lg hover:bg-red-50 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                 </div>
