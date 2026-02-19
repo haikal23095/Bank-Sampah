@@ -92,7 +92,7 @@
                     <p class="text-sm text-gray-500 text-center py-4">Belum ada aktivitas.</p>
                 @endforelse
 
-                <a href="#" class="block text-center text-green-600 text-sm font-medium mt-4 hover:underline">Lihat Semua Riwayat</a>
+                <a href="{{ route('admin.history.index') }}" class="block text-center text-green-600 text-sm font-medium mt-4 hover:underline">Lihat Semua Riwayat</a>
             </div>
         </div>
     </div>
