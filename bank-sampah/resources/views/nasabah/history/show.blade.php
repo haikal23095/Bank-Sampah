@@ -130,7 +130,7 @@
                         @foreach($record->details as $detail)
                         <tr class="border-b border-gray-50">
                             <td class="py-3 font-medium">{{ $detail->wasteType->name ?? '-' }}</td>
-                            <td class="py-3">Rp {{ $detail->wasteType ? number_format($detail->wasteType->price_per_kg, 0, ',', '.') : 0 }}</td>
+                            <td class="py-3">Rp {{ number_format(($detail->subtotal/$detail->weight) ?? 0, 0, ',', '.') }}</td>
                             <td class="py-3">{{ $detail->weight }} kg</td>
                             <td class="py-3 text-right font-bold">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                         </tr>

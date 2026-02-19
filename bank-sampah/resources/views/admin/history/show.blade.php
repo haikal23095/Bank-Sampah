@@ -48,7 +48,7 @@
                         @foreach($transaction->details as $detail)
                         <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
                             <td class="py-3 font-semibold">{{ $detail->wasteType->name ?? '-' }}</td>
-                            <td class="py-3">Rp {{ number_format($detail->wasteType->price_per_kg ?? 0, 0, ',', '.') }}</td>
+                            <td class="py-3">Rp {{ number_format(($detail->subtotal/$detail->weight) ?? 0, 0, ',', '.') }}</td>
                             <td class="py-3">{{ number_format($detail->weight, 2) }} {{ $detail->wasteType->unit ?? 'kg' }}</td>
                             <td class="py-3 text-right font-bold text-emerald-600">Rp {{ number_format($detail->subtotal, 0, ',', '.') }}</td>
                         </tr>
