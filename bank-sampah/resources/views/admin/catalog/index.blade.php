@@ -130,8 +130,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1.5">Harga (Rp)</label>
-                    <input type="number" name="price_per_kg" required placeholder="0" 
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <input type="text" name="price_per_kg_display" required placeholder="0" 
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" id="price_per_kg_display">
+                    <input id="price_per_kg" name="price_per_kg" type="hidden" value="0">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1.5">Satuan</label>
@@ -451,6 +452,55 @@
             modalEditCat.classList.add('hidden');
         }, 300);
     }
+
+
+
+
+    // FORMAT RUPIAH
+    const pricePerKgDisplay = document.querySelector('#price_per_kg_display');
+    const pricePerKgHidden = document.querySelector('#price_per_kg');
+
+    function formatRupiah(angka, prefix = '') {
+        let number_string = angka.replace(/[^,\d]/g, '').toString(),
+            split = number_string.split(','),
+            sisa = split[0].length % 3,
+            rupiah = split[0].substr(0, sisa),
+            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
+
+        if (ribuan) {
+            let separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
+
+        rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
+
+        return rupiah;
+    }
+
+    function parseRupiah(value) {
+        return parseInt(value.replace(/[^0-9]/g, '')) || 0;
+    }
+
+    function updateAmountFormat() {
+        console.log('hallooo');
+        
+        const numericValue = parseRupiah(pricePerKgDisplay.value);
+        pricePerKgDisplay.value = formatRupiah(numericValue.toString());
+        pricePerKgHidden.value = numericValue;
+    }
+
+    // Listener untuk input amount
+    pricePerKgDisplay.addEventListener('keyup', updateAmountFormat);
+    pricePerKgDisplay.addEventListener('change', updateAmountFormat);
+
+    // Trigger saat load apabila ada old value
+    updateAmountFormat();
+
+
+
+
+
+
 
     // Tutup jika klik background luar
     window.onclick = function(e) {
