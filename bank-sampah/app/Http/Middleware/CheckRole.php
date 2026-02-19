@@ -28,10 +28,10 @@ class CheckRole
         }
 
         // 3. Jika TIDAK SESUAI, lempar ke dashboard masing-masing (Smart Redirect)
-        // Contoh: Nasabah coba buka link admin -> lempar ke dashboard nasabah
-        if (Auth::user()->role == 'ADMIN') {
+        $userRole = strtoupper(Auth::user()->role);
+        if ($userRole == 'ADMIN') {
             return redirect('/admin/dashboard');
-        } elseif (Auth::user()->role == 'NASABAH') {
+        } elseif ($userRole == 'NASABAH') {
             return redirect('/nasabah/dashboard');
         }
 
