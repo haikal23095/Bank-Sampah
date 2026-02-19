@@ -9,21 +9,21 @@
         <p class="text-gray-500 text-sm mt-1">Pantau semua aktivitas setor dan tarik saldo.</p>
 
         <!-- Filter Tanggal -->
-        <form action="{{ route('admin.history.index') }}" method="GET" class="flex items-center gap-3 mt-4">
-            <div class="flex flex-col">
+        <form action="{{ route('admin.history.index') }}" method="GET" class="flex flex-wrap items-end gap-3 mt-4">
+            <div class="flex flex-col w-full sm:w-auto">
                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Dari Tanggal</label>
-                <input type="date" name="start_date" value="{{ request('start_date') }}" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+                <input type="date" name="start_date" value="{{ request('start_date') }}" class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
             </div>
-            <div class="flex flex-col">
+            <div class="flex flex-col w-full sm:w-auto">
                 <label class="text-[10px] font-bold text-gray-400 uppercase ml-1">Sampai Tanggal</label>
-                <input type="date" name="end_date" value="{{ request('end_date') }}" class="border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
+                <input type="date" name="end_date" value="{{ request('end_date') }}" class="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs focus:ring-2 focus:ring-blue-500 outline-none text-gray-600">
             </div>
-            <div class="flex items-end h-full pt-4">
+            <div class="flex items-center gap-2 mb-1.5">
                 <button type="submit" class="bg-gray-100 hover:bg-gray-200 text-gray-600 p-1.5 rounded-lg transition" title="Filter">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
                 </button>
                 @if(request('start_date') || request('end_date'))
-                    <a href="{{ route('admin.history.index') }}" class="ml-2 text-xs text-red-500 hover:underline mb-2">Reset</a>
+                    <a href="{{ route('admin.history.index') }}" class="text-xs text-red-500 hover:underline">Reset</a>
                 @endif
             </div>
         </form>
