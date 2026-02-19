@@ -197,7 +197,7 @@
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nominal (Rp)</label>
                     <div class="relative">
                         <!-- visible, formatted input -->
-                        <input id="amountDisplay" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none" placeholder="0">
+                        <input id="amountDisplay" type="text" autocomplete="off" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none" placeholder="0">
                         <!-- hidden raw numeric value submitted to server -->
                         <input id="amount" name="amount" type="hidden" value="0">
                     </div>
@@ -365,85 +365,47 @@
         }
     }
 
-    // --- Prevent duplicate submissions + format Nominal (Rp) input ---
-    (function() {
-        const form = document.getElementById('withdrawForm');
-        const btn = document.getElementById('withdrawSubmitBtn');
-        const btnText = document.getElementById('withdrawBtnText');
-        const btnIcon = document.getElementById('withdrawBtnIcon');
 
-        const amountDisplay = document.getElementById('amountDisplay');
-        const amountHidden = document.getElementById('amount');
 
-        if (!form || !btn) return;
 
-        // formatter: keep hidden input numeric, display with '.' every 3 digits
-        const formatDisplay = (raw) => {
-            if (!raw) return '0';
-            return raw.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-        };
 
-        const setRawValue = (str) => {
-            const digits = (str || '').toString().replace(/\D/g, '');
-            amountHidden.value = digits === '' ? 0 : parseInt(digits, 10);
-            amountDisplay.value = formatDisplay(digits);
-        };
+    // FORMAT RUPIAH
+    const amountInput = document.querySelector('#amountDisplay');
+    const amountHidden = document.querySelector('#amount');
 
-        // initialize
-        setRawValue(amountHidden.value || '0');
+    function formatRupiah(angka, prefix = '') {
+        let number_string = angka.replace(/[^,\d]/g, '').toString(),
+            split = number_string.split(','),
+            sisa = split[0].length % 3,
+            rupiah = split[0].substr(0, sisa),
+            ribuan = split[0].substr(sisa).match(/\d{3}/gi);
 
-        // on user input: format visually and update hidden field
-        amountDisplay.addEventListener('input', function (e) {
-            const cursorPos = this.selectionStart || this.value.length;
-            const beforeLen = this.value.length;
+        if (ribuan) {
+            let separator = sisa ? '.' : '';
+            rupiah += separator + ribuan.join('.');
+        }
 
-            setRawValue(this.value);
+        rupiah = split[1] !== undefined ? rupiah + ',' + split[1] : rupiah;
 
-            // try to preserve cursor position (best-effort)
-            const afterLen = this.value.length;
-            const diff = afterLen - beforeLen;
-            try { this.setSelectionRange(cursorPos + diff, cursorPos + diff); } catch (err) { /* ignore */ }
-        });
+        return rupiah;
+    }
 
-        // prevent non-digit paste
-        amountDisplay.addEventListener('paste', function (e) {
-            const paste = (e.clipboardData || window.clipboardData).getData('text');
-            if (!/^[0-9.,\s]+$/.test(paste)) {
-                e.preventDefault();
-            }
-        });
+        function parseRupiah(value) {
+        return parseInt(value.replace(/[^0-9]/g, '')) || 0;
+    }
 
-        form.addEventListener('submit', function (e) {
-            // Ensure hidden amount is numeric before submitting
-            setRawValue(amountDisplay.value);
+    function updateAmountFormat() {
+        const numericValue = parseRupiah(amountInput.value);
+        amountInput.value = formatRupiah(numericValue.toString());
+        amountHidden.value = numericValue;
+    }
 
-            // If amount is zero or empty, allow server validation to handle it
+    // Listener untuk input amount
+    amountInput.addEventListener('keyup', updateAmountFormat);
+    amountInput.addEventListener('change', updateAmountFormat);
 
-            // Prevent duplicate client clicks
-            if (btn.disabled) {
-                e.preventDefault();
-                return;
-            }
+    // Trigger saat load apabila ada old value
+    updateAmountFormat();
 
-            // Disable button and show loading state
-            btn.disabled = true;
-            btn.setAttribute('aria-busy', 'true');
-            btn.classList.add('opacity-70', 'cursor-not-allowed');
-            btnText.textContent = 'Memproses...';
-
-            // Replace icon with a simple spinner
-            btnIcon.innerHTML = '<svg class="animate-spin w-5 h-5" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>';
-        });
-
-        // Re-enable button if user navigates back or form errors (best-effort)
-        window.addEventListener('pageshow', function () {
-            if (btn) {
-                btn.disabled = false;
-                btn.removeAttribute('aria-busy');
-                btn.classList.remove('opacity-70', 'cursor-not-allowed');
-                btnText.textContent = 'Konfirmasi & Cetak Nota';
-            }
-        });
-    })();
 </script>
 @endsection

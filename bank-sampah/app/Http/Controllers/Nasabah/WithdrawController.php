@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Withdrawal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class WithdrawController extends Controller
 {
@@ -20,10 +21,10 @@ class WithdrawController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'method' => 'required|in:tunai,transfer',
+            'method' => 'required|in:CASH,TRANSFER',
             'amount' => 'required|numeric|min:10000',
         ]);
-
+            
         $user = Auth::user();
 
         // Check balance
@@ -33,6 +34,7 @@ class WithdrawController extends Controller
         if ($amount > $balance) {
             return back()->withErrors(['amount' => 'Saldo tidak mencukupi'])->withInput();
         }
+
 
         // Create withdrawal with status PENDING
         Withdrawal::create([
