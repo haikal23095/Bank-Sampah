@@ -55,6 +55,27 @@ class CatalogController extends Controller
         return back()->with('success', 'Jenis sampah berhasil ditambahkan!');
     }
 
+    // Perbarui item jenis sampah
+    public function updateType(Request $request, $id)
+    {
+        $request->validate([
+            'category_id' => 'required|exists:waste_categories,id',
+            'name' => 'required|string|max:255',
+            'price_per_kg' => 'required|numeric|min:0',
+            'unit' => 'required|string|max:10',
+        ]);
+
+        $type = WasteType::findOrFail($id);
+        $type->update([
+            'category_id' => $request->category_id,
+            'name' => $request->name,
+            'price_per_kg' => $request->price_per_kg,
+            'unit' => $request->unit,
+        ]);
+
+        return back()->with('success', 'Item berhasil diperbarui!');
+    }
+
     public function storeCategory(Request $request)
     {
         $request->validate([

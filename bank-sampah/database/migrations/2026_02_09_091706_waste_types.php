@@ -13,10 +13,10 @@ return new class extends Migration
     {
         Schema::create('waste_types', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('category_id')->constrained('waste_categories')->onDelete('cascade');
-            $table->string('name'); // Botol PET, Kardus, dll
+            $table->foreignId('category_id')->nullable()->constrained('waste_categories')->onDelete('set null');
+            $table->string('name'); 
             $table->decimal('price_per_kg', 12, 2);
-            $table->enum('unit', ['kg', 'pcs'])->default('kg');
+            $table->enum('unit', ['kg', 'pcs', 'liter'])->default('kg');
             $table->timestamps();
         });
     }

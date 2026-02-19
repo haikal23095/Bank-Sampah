@@ -47,11 +47,16 @@
 
             <div class="space-y-3 flex-1 items-container">
                 @forelse($category->wasteTypes as $item)
-                    <div class="waste-item border border-gray-100 rounded-xl p-3 hover:border-emerald-200 transition bg-white group relative"
+                        <div class="waste-item border border-gray-100 rounded-xl p-3 hover:border-emerald-200 transition bg-white group relative"
                          data-item-name="{{ strtolower($item->name) }}">
-                        <button onclick="confirmDeleteItem({{ $item->id }})" class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition text-gray-300 hover:text-red-500">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                        </button>
+                        <div class="absolute top-2 right-2 flex gap-2 opacity-0 group-hover:opacity-100 transition">
+                            <button onclick="openEditItemModal({{ $item->id }}, '{{ addslashes($item->name) }}', {{ $item->price_per_kg }}, '{{ $item->unit }}', {{ $item->category_id }})" class="p-1.5 bg-white rounded-md text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            </button>
+                            <button onclick="confirmDeleteItem({{ $item->id }})" class="p-1.5 bg-white rounded-md text-gray-300 hover:text-red-500 hover:bg-red-50 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
                         <form id="delete-item-form-{{ $item->id }}" action="{{ route('admin.catalog.destroyType', $item->id) }}" method="POST" class="hidden">
                             @csrf @method('DELETE')
                         </form>
@@ -97,25 +102,25 @@
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-300" id="modalContent">
         
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h3 class="text-lg font-bold text-gray-800">Tambah Jenis Sampah</h3>
+            <h3 id="modalAddTitle" class="text-lg font-bold text-gray-800">Tambah Jenis Sampah</h3>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600 transition">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
 
-        <form action="{{ route('admin.catalog.storeType') }}" method="POST" class="p-6 space-y-4">
+        <form id="modalAddForm" action="{{ route('admin.catalog.storeType') }}" method="POST" class="p-6 space-y-4">
             @csrf
 
             <div>
                 <label class="block text-xs font-bold text-gray-600 mb-1.5">Nama Jenis Sampah</label>
-                <input type="text" name="name" required placeholder="Contoh: Botol Plastik PET" 
+                <input id="modal_item_name" type="text" name="name" required placeholder="Contoh: Botol Plastik PET" 
                     class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition">
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-gray-600 mb-1.5">Kategori</label>
                 <div class="relative">
-                    <select name="category_id" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none bg-white">
+                    <select id="modal_category_id" name="category_id" required class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none bg-white">
                         <option value="" disabled selected>Pilih Kategori</option>
                         @foreach($categories as $cat)
                             <option value="{{ $cat->id }}">{{ $cat->name }}</option>
@@ -130,14 +135,14 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1.5">Harga (Rp)</label>
-                    <input type="text" name="price_per_kg_display" required placeholder="0" 
-                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none" id="price_per_kg_display">
+                    <input id="price_per_kg_display" type="text" name="price_per_kg_display" required placeholder="0" 
+                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                     <input id="price_per_kg" name="price_per_kg" type="hidden" value="0">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1.5">Satuan</label>
                     <div class="relative">
-                        <select name="unit" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none bg-white">
+                        <select id="modal_unit" name="unit" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 outline-none appearance-none bg-white">
                             <option value="kg">kg</option>
                             <option value="pcs">pcs</option>
                             <option value="liter">liter</option>
@@ -150,9 +155,9 @@
             </div>
 
             <div class="pt-2">
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
+                <button id="modalSubmitBtn" type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition transform hover:scale-[1.02]">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path></svg>
-                    Tambah Jenis
+                    <span id="modalSubmitText">Tambah Jenis</span>
                 </button>
             </div>
         </form>
@@ -401,6 +406,21 @@
     const modalEditCatContent = document.getElementById('modalEditCategoryContent');
 
     function openModal() {
+        // prepare modal for CREATE
+        const form = document.getElementById('modalAddForm');
+        form.action = `{{ route('admin.catalog.storeType') }}`;
+        // remove _method input if present
+        const methodInput = form.querySelector('input[name="_method"]');
+        if (methodInput) methodInput.remove();
+        // reset fields
+        document.getElementById('modalAddTitle').textContent = 'Tambah Jenis Sampah';
+        document.getElementById('modal_item_name').value = '';
+        document.getElementById('modal_category_id').value = '';
+        document.getElementById('price_per_kg_display').value = '';
+        document.getElementById('price_per_kg').value = 0;
+        document.getElementById('modal_unit').value = 'kg';
+        document.getElementById('modalSubmitText').textContent = 'Tambah Jenis';
+
         modal.classList.remove('hidden');
         setTimeout(() => {
             modalContent.classList.remove('scale-95', 'opacity-0');
@@ -414,6 +434,36 @@
         setTimeout(() => {
             modal.classList.add('hidden');
         }, 300);
+    }
+
+    // Open modal in EDIT mode for an item
+    function openEditItemModal(id, name, price, unit, categoryId) {
+        const form = document.getElementById('modalAddForm');
+        form.action = `/admin/katalog/item/${id}`;
+        // ensure method override for PUT
+        let methodInput = form.querySelector('input[name="_method"]');
+        if (!methodInput) {
+            methodInput = document.createElement('input');
+            methodInput.type = 'hidden';
+            methodInput.name = '_method';
+            form.prepend(methodInput);
+        }
+        methodInput.value = 'PUT';
+
+        document.getElementById('modalAddTitle').textContent = 'Edit Jenis Sampah';
+        document.getElementById('modal_item_name').value = name;
+        document.getElementById('modal_category_id').value = categoryId;
+        document.getElementById('price_per_kg').value = price;
+        // format price for display
+        document.getElementById('price_per_kg_display').value = new Intl.NumberFormat('id-ID').format(price);
+        document.getElementById('modal_unit').value = unit;
+        document.getElementById('modalSubmitText').textContent = 'Simpan Perubahan';
+
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+            modalContent.classList.remove('scale-95', 'opacity-0');
+            modalContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
     }
 
     function openManageCategoriesModal() {

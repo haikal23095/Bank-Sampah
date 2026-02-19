@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('transaction_details', function (Blueprint $table) {
             $table->id();
             $table->foreignId('transaction_id')->constrained('transactions')->onDelete('cascade');
-            $table->foreignId('waste_type_id')->constrained('waste_types');
+            $table->foreignId('waste_type_id')->nullable()->constrained('waste_types')->onDelete('set null');
             $table->decimal('weight', 10, 2);
             $table->decimal('subtotal', 15, 2);
             $table->timestamps();

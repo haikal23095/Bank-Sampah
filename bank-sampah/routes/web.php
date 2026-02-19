@@ -55,6 +55,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // Katalog
     Route::get('/katalog', [AdminCatalogController::class, 'index'])->name('admin.catalog.index');
     Route::post('/katalog/item', [AdminCatalogController::class, 'storeType'])->name('admin.catalog.storeType');
+    Route::put('/katalog/item/{id}', [AdminCatalogController::class, 'updateType'])->name('admin.catalog.updateType');
     Route::post('/katalog/category', [AdminCatalogController::class, 'storeCategory'])->name('admin.catalog.storeCategory');
     Route::put('/katalog/category/{id}', [AdminCatalogController::class, 'updateCategory'])->name('admin.catalog.updateCategory');
     Route::delete('/katalog/category/{id}', [AdminCatalogController::class, 'destroyCategory'])->name('admin.catalog.destroyCategory');
