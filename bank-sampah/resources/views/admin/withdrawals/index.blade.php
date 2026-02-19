@@ -5,6 +5,27 @@
 @section('content')
 <div class="max-w-6xl mx-auto">
 
+    <!-- Confirm Dialog -->
+    <div id="confirmActionModal" class="fixed inset-0 bg-black bg-opacity-60 z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="confirmActionContent">
+            <div class="p-8 text-center text-gray-800">
+                <div id="confirmActionIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
+                    <!-- Icon via JS -->
+                </div>
+                <h3 id="confirmActionTitle" class="text-2xl font-bold mb-2 text-gray-900"></h3>
+                <p id="confirmActionMessage" class="text-gray-500 mb-8 px-4 leading-relaxed"></p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirmAction()" class="w-full py-3 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all active:scale-95">
+                        Batal
+                    </button>
+                    <button id="finalConfirmBtn" class="w-full py-3 rounded-xl font-bold text-white transition-all active:scale-95 shadow-lg">
+                        Konfirmasi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="flex justify-between items-center mb-6">
         <div>
             <h1 class="text-2xl font-bold text-gray-900">Kelola Permintaan Penarikan</h1>
@@ -133,11 +154,11 @@
                                 <p class="text-lg font-black text-blue-600 mt-1">Rp {{ number_format($pending->amount, 0, ',', '.') }}</p>
                             </div>
                             <div class="flex gap-2">
-                                <form action="{{ route('admin.withdrawals.approve', $pending->id) }}" method="POST" onsubmit="return confirm('Setujui penarikan ini?')">
+                                <button type="button" onclick="confirmApprove({{ $pending->id }})" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition">
+                                    SETUJUI
+                                </button>
+                                <form id="approve-form-{{ $pending->id }}" action="{{ route('admin.withdrawals.approve', $pending->id) }}" method="POST" class="hidden">
                                     @csrf
-                                    <button type="submit" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition">
-                                        SETUJUI
-                                    </button>
                                 </form>
                                 <button onclick="openRejectModal('{{ route('admin.withdrawals.reject', $pending->id) }}')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold shadow-sm transition">
                                     TOLAK
@@ -183,15 +204,41 @@
         <form id="withdrawForm" action="{{ route('admin.withdrawals.store') }}" method="POST" class="p-6">
             @csrf
             
+            <!-- Selection Info (Hidden by default) -->
+            <div id="selection-info" class="hidden mb-4 p-3 bg-blue-50 border border-blue-100 rounded-xl animate-in slide-in-from-top-2 duration-300">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg" id="info-initial">
+                            ?
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-blue-500 uppercase tracking-wider">Nasabah Terpilih</p>
+                            <p id="info-name" class="text-sm font-bold text-gray-900"></p>
+                            <p id="info-balance" class="text-xs font-medium text-blue-700"></p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="clearSelection()" class="text-xs bg-white border border-blue-200 text-blue-600 px-3 py-1.5 rounded-lg font-bold hover:bg-blue-50 transition shadow-sm">
+                        Ubah
+                    </button>
+                </div>
+            </div>
+
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="col-span-1">
+                <div class="col-span-1 relative" id="nasabah-search-container">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Pilih Nasabah</label>
-                    <select name="user_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none">
-                        <option value="">-- Cari Nasabah --</option>
-                        @foreach($nasabahs as $nasabah)
-                            <option value="{{ $nasabah->id }}">{{ $nasabah->name }} (Saldo: Rp {{ number_format($nasabah->wallet->balance ?? 0, 0, ',', '.') }})</option>
-                        @endforeach
-                    </select>
+                    <div class="relative">
+                        <input type="text" id="nasabah-search-input" placeholder="Ketik nama atau email..." autocomplete="off" class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-blue-500 outline-none pr-8">
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none text-gray-400">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        </div>
+                    </div>
+                    <!-- Hidden input for the actual user_id -->
+                    <input type="hidden" name="user_id" id="user_id_input" required>
+                    
+                    <!-- Dropdown suggestions -->
+                    <div id="nasabah-results" class="hidden absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                        <!-- Results injected via JS -->
+                    </div>
                 </div>
                 <div class="col-span-1">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nominal (Rp)</label>
@@ -312,6 +359,142 @@
 @endif
 
 <script>
+    // --- Data Nasabah for Autocomplete ---
+    const nasabahs = [
+        @foreach($nasabahs as $n)
+            { id: "{{ $n->id }}", name: "{{ $n->name }}", email: "{{ $n->email }}", balance: "{{ number_format($n->wallet->balance ?? 0, 0, ',', '.') }}" },
+        @endforeach
+    ];
+
+    // Autocomplete Nasabah
+    const searchContainer = document.getElementById('nasabah-search-container');
+    const searchInput = document.getElementById('nasabah-search-input');
+    const userIdInput = document.getElementById('user_id_input');
+    const resultsDiv = document.getElementById('nasabah-results');
+    const selectionInfo = document.getElementById('selection-info');
+    const infoName = document.getElementById('info-name');
+    const infoBalance = document.getElementById('info-balance');
+    const infoInitial = document.getElementById('info-initial');
+
+    function selectNasabah(n) {
+        searchInput.value = n.name;
+        userIdInput.value = n.id;
+        
+        // Show info display
+        infoName.innerHTML = `<span class="text-gray-500 font-normal">Nama Nasabah:</span> ${n.name}`;
+        infoBalance.textContent = `Saldo: Rp ${n.balance}`;
+        infoInitial.textContent = n.name.charAt(0).toUpperCase();
+        
+        // Hide search input area
+        searchContainer.classList.add('opacity-40', 'pointer-events-none');
+        selectionInfo.classList.remove('hidden');
+        resultsDiv.classList.add('hidden');
+    }
+
+    function clearSelection() {
+        searchInput.value = '';
+        userIdInput.value = '';
+        selectionInfo.classList.add('hidden');
+        searchContainer.classList.remove('opacity-40', 'pointer-events-none');
+        searchInput.focus();
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            userIdInput.value = ''; // Reset ID while typing
+            
+            if (query.length === 0) {
+                resultsDiv.classList.add('hidden');
+                return;
+            }
+
+            const filtered = nasabahs.filter(n => 
+                n.name.toLowerCase().includes(query) || n.email.toLowerCase().includes(query)
+            ).slice(0, 10);
+
+            resultsDiv.innerHTML = '';
+            if (filtered.length > 0) {
+                filtered.forEach(n => {
+                    const div = document.createElement('div');
+                    div.className = "px-4 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-50 last:border-b-0 group text-sm animate-in fade-in duration-200";
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="font-bold text-gray-800 group-hover:text-blue-700">${n.name}</p>
+                                <p class="text-xs text-gray-400 group-hover:text-blue-500">${n.email}</p>
+                            </div>
+                            <span class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded">Saldo: Rp ${n.balance}</span>
+                        </div>
+                    `;
+                    div.addEventListener('click', () => selectNasabah(n));
+                    resultsDiv.appendChild(div);
+                });
+                resultsDiv.classList.remove('hidden');
+            } else {
+                const div = document.createElement('div');
+                div.className = 'px-4 py-3 text-sm text-gray-400 italic text-center';
+                div.innerText = 'Nasabah tidak ditemukan';
+                resultsDiv.appendChild(div);
+                resultsDiv.classList.remove('hidden');
+            }
+        });
+
+        // Close on global click
+        document.addEventListener('click', (e) => {
+            if (!searchContainer.contains(e.target)) resultsDiv.classList.add('hidden');
+        });
+    }
+
+    // Confirm Dialog Logic
+    const confirmActionModal = document.getElementById('confirmActionModal');
+    const confirmActionContent = document.getElementById('confirmActionContent');
+    const confirmActionIcon = document.getElementById('confirmActionIcon');
+    const confirmActionTitle = document.getElementById('confirmActionTitle');
+    const confirmActionMessage = document.getElementById('confirmActionMessage');
+    const finalConfirmBtn = document.getElementById('finalConfirmBtn');
+    let confirmTargetFormId = null;
+
+    function showConfirmModal(title, message, formId, type = 'success') {
+        confirmActionTitle.textContent = title;
+        confirmActionMessage.textContent = message;
+        confirmTargetFormId = formId;
+
+        if (type === 'success') {
+            confirmActionIcon.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-emerald-100 text-emerald-600";
+            confirmActionIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            finalConfirmBtn.className = "w-full py-3 rounded-xl font-bold text-white transition-all active:scale-95 shadow-lg bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200 uppercase tracking-wider";
+        } else {
+            confirmActionIcon.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-100 text-red-600";
+            confirmActionIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+            finalConfirmBtn.className = "w-full py-3 rounded-xl font-bold text-white transition-all active:scale-95 shadow-lg bg-red-500 hover:bg-red-600 shadow-red-200 uppercase tracking-wider";
+        }
+
+        confirmActionModal.classList.remove('hidden');
+        setTimeout(() => {
+            confirmActionContent.classList.remove('scale-95', 'opacity-0');
+            confirmActionContent.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeConfirmAction() {
+        confirmActionContent.classList.remove('scale-100', 'opacity-100');
+        confirmActionContent.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            confirmActionModal.classList.add('hidden');
+        }, 300);
+    }
+
+    function confirmApprove(id) {
+        showConfirmModal('Setujui Penarikan?', 'Apakah Anda yakin ingin menyetujui permintaan penarikan saldo ini?', 'approve-form-' + id, 'success');
+    }
+
+    finalConfirmBtn.addEventListener('click', function() {
+        if (confirmTargetFormId) {
+            document.getElementById(confirmTargetFormId).submit();
+        }
+    });
+
     // --- Logic Modal Form ---
     function openModal(id) {
         const modal = document.getElementById(id);
