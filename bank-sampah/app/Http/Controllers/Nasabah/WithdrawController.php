@@ -14,7 +14,6 @@ class WithdrawController extends Controller
         $user = Auth::user();
         $wallet = $user->wallet;
         $withdrawals = Withdrawal::where('user_id', $user->id)->latest()->limit(10)->get();
-
         return view('nasabah.withdraw.index', compact('user', 'wallet', 'withdrawals'));
     }
 

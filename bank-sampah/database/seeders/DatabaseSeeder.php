@@ -59,7 +59,7 @@ class DatabaseSeeder extends Seeder
             $u['join_date'] = $now->subMonths(2);
             $u['created_at'] = $now;
         }
-        DB::table('users')->insert($users);
+        DB::table(' users')->insert($users);
 
         // --- 4. WALLETS ---
         $wallets = [

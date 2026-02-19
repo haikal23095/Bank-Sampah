@@ -15,24 +15,28 @@
                     <h3 class="text-lg font-bold text-gray-900">Info Billing Nasabah</h3>
                 </div>
 
-                <form action="{{ route('nasabah.billing.update') }}" method="POST">
+                <form id="billingForm" action="{{ route('nasabah.billing.update') }}" method="POST">
+
+                    @if(session('success'))
+                        <div class="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-2 rounded text-sm">{{ session('success') }}</div>
+                    @endif
                     @csrf
                     <div class="mb-3">
                         <label class="text-xs text-gray-500 font-semibold">NAMA BANK</label>
-                        <input type="text" name="bank_name" value="{{ old('bank_name', $user->bank_name) }}" placeholder="Belum diatur"
-                               class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white" />
+                        <input type="text" name="bank_name" id="bankNameInput" value="{{ old('bank_name', $user->bank_name) }}" placeholder="Belum diatur"
+                               class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" disabled />
                     </div>
 
                     <div class="mb-3">
                         <label class="text-xs text-gray-500 font-semibold">NOMOR REKENING</label>
-                        <input type="text" name="account_number" value="{{ old('account_number', $user->account_number) }}" placeholder="Belum diatur"
-                               class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white" />
+                        <input type="text" name="account_number" id="accountNumberInput" value="{{ old('account_number', $user->account_number) }}" placeholder="Belum diatur"
+                               class="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2 text-sm bg-white disabled:bg-gray-100 disabled:cursor-not-allowed" disabled />
                     </div>
 
-                    <button type="submit" class="w-full bg-emerald-50 text-emerald-600 font-semibold rounded-lg py-2.5 mt-2">
+                    <button type="button" id="billingToggleBtn" class="w-full bg-emerald-50 text-emerald-600 font-semibold rounded-lg py-2.5 mt-2 hover:bg-emerald-100 transition">
                         <span class="inline-flex items-center gap-2 justify-center">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Simpan Rekening
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                            Edit Rekening
                         </span>
                     </button>
                 </form>
@@ -54,14 +58,12 @@
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                 <h3 class="text-lg font-bold text-gray-900 mb-4">Ajukan Penarikan Saldo</h3>
 
-                @if(session('success'))
-                    <div class="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-2 rounded">{{ session('success') }}</div>
-                @endif
-
+                
                 <form id="withdrawForm" action="{{ route('nasabah.withdraw.store') }}" method="POST">
                     @csrf
                     <input type="hidden" name="method" id="methodInput" value="tunai">
-
+                    
+                    
                     <div class="grid grid-cols-3 gap-4 items-center mb-4">
                         <div class="col-span-2">
                             <label class="text-sm text-gray-600 font-medium">Metode Penarikan</label>
@@ -109,6 +111,9 @@
                                 </div>
                                 <div class="text-right">
                                     <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $w->status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' : ($w->status === 'SUCCESS' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700') }}">{{ $w->status }}</span>
+                                    @if($w->admin_note && $w->status==='FAILED')
+                                        <p class="text-[10px] text-gray-400 mt-1 italic">{{ $w->admin_note }}</p>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -120,6 +125,36 @@
 </div>
 
 <script>
+    // BILLING FORM TOGGLE LOGIC
+    const billingToggleBtn = document.getElementById('billingToggleBtn');
+    const billingForm = document.getElementById('billingForm');
+    const bankNameInput = document.getElementById('bankNameInput');
+    const accountNumberInput = document.getElementById('accountNumberInput');
+    let isEditMode = false;
+
+    billingToggleBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        isEditMode = !isEditMode;
+
+        if (isEditMode) {
+            // Enter edit mode
+            bankNameInput.disabled = false;
+            accountNumberInput.disabled = false;
+            bankNameInput.focus();
+            billingToggleBtn.innerHTML = `
+                <span class="inline-flex items-center gap-2 justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    Simpan Rekening
+                </span>
+            `;
+            billingToggleBtn.classList.remove('bg-emerald-50', 'text-emerald-600');
+            billingToggleBtn.classList.add('bg-emerald-500', 'text-white', 'hover:bg-emerald-600');
+        } else {
+            // Exit edit mode - submit form
+            billingForm.submit();
+        }
+    });
+
     // FORMAT RUPIAH
     const amountInput = document.querySelector('#amountInput');
     const amountHidden = document.querySelector('#amountHidden');
