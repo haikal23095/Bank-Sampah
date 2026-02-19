@@ -93,8 +93,9 @@
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         @if($withdrawals->count() > 0)
-            <table class="w-full text-left border-collapse">
-                <thead>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse min-w-[650px]">
+                    <thead>
                     <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                         <th class="px-6 py-4 font-semibold">Tanggal</th>
                         <th class="px-6 py-4 font-semibold">Nasabah</th>
@@ -124,6 +125,7 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
         @else
             <div class="flex flex-col items-center justify-center py-20">
                 <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4 text-gray-400">
