@@ -17,9 +17,6 @@
 
                 <form id="billingForm" action="{{ route('nasabah.billing.update') }}" method="POST">
 
-                    @if(session('success'))
-                        <div class="mb-4 bg-green-50 border border-green-100 text-green-700 px-4 py-2 rounded text-sm">{{ session('success') }}</div>
-                    @endif
                     @csrf
                     <div class="mb-3">
                         <label class="text-xs text-gray-500 font-semibold">NAMA BANK</label>
@@ -130,6 +127,23 @@
     </div>
 </div>
 
+
+<!-- Notification Modal -->
+<div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="notificationContentModal">
+        <div class="p-8 text-center border-b border-gray-50">
+            <div id="notificationIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
+                <!-- Icon via JS -->
+            </div>
+            <h3 id="notificationTitle" class="text-2xl font-bold text-gray-900 mb-2"></h3>
+            <p id="notificationMessage" class="text-gray-500 mb-8 px-4 leading-relaxed"></p>
+            <button onclick="closeNotification()" id="notificationButton" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95">
+                Mengerti
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
     // BILLING FORM TOGGLE LOGIC
     const billingToggleBtn = document.getElementById('billingToggleBtn');
@@ -223,5 +237,51 @@
         const defaultBtn = document.querySelector('.method-btn[data-method="CASH"]');
         if (defaultBtn) defaultBtn.click();
     });
+
+
+
+
+    // Notification Logic for withdraw page
+    const notificationModal = document.getElementById('notificationModal');
+    const notificationContentModal = document.getElementById('notificationContentModal');
+    const notificationIcon = document.getElementById('notificationIcon');
+    const notificationTitle = document.getElementById('notificationTitle');
+    const notificationMessage = document.getElementById('notificationMessage');
+    const notificationButton = document.getElementById('notificationButton');
+
+    function showNotification(type, title, message) {
+        notificationTitle.textContent = title;
+        notificationMessage.textContent = message;
+
+        if (type === 'success') {
+            notificationIcon.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-green-100 text-green-600";
+            notificationIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+            notificationButton.className = "w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200";
+        } else {
+            notificationIcon.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-100 text-red-600";
+            notificationIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
+            notificationButton.className = "w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 bg-red-500 hover:bg-red-600 shadow-red-200";
+        }
+
+        notificationModal.classList.remove('hidden');
+        setTimeout(() => {
+            notificationContentModal.classList.remove('scale-95', 'opacity-0');
+            notificationContentModal.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeNotification() {
+        notificationContentModal.classList.remove('scale-100', 'opacity-100');
+        notificationContentModal.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            notificationModal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Trigger modal when session contains success (withdraw entry created)
+    @if(session('success'))
+        showNotification('success', 'Berhasil', "{{ session('success') }}");
+    @endif
+
 </script>
 @endsection

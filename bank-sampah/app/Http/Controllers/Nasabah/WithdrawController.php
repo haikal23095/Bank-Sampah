@@ -20,10 +20,16 @@ class WithdrawController extends Controller
 
     public function store(Request $request)
     {
+        $messages = [
+            'amount.required' => 'Jumlah Penarikan Minimal Rp. 10.000',
+            'amount.numeric' => 'Jumlah Penarikan Minimal Rp. 10.000',
+            'amount.min' => 'Jumlah Penarikan Minimal Rp. 10.000',
+        ];
+
         $request->validate([
             'method' => 'required|in:CASH,TRANSFER',
             'amount' => 'required|numeric|min:10000',
-        ]);
+        ], $messages);
             
         $user = Auth::user();
 
