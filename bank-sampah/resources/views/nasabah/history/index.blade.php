@@ -30,80 +30,115 @@
     </form>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                    <th class="px-6 py-4 font-semibold text-center">No</th>
-                    <th class="px-6 py-4 font-semibold">ID / Tanggal</th>
-                    <th class="px-6 py-4 font-semibold">Tipe</th>
-                    <th class="px-6 py-4 font-semibold">Total (Rp)</th>
-                    <th class="px-6 py-4 font-semibold">Status</th>
-                    <th class="px-6 py-4 font-semibold text-right">Aksi</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-                @forelse($transactions as $index => $trx)
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="px-6 py-4">
-                        <div class="text-center text-sm text-gray-500">{{ $transactions->firstItem() + $index }}</div>
-                    </td>
+        <!-- Desktop Table -->
+        <div class="hidden sm:block">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
+                        <th class="px-6 py-4 font-semibold text-center">No</th>
+                        <th class="px-6 py-4 font-semibold">ID / Tanggal</th>
+                        <th class="px-6 py-4 font-semibold">Tipe</th>
+                        <th class="px-6 py-4 font-semibold">Total (Rp)</th>
+                        <th class="px-6 py-4 font-semibold">Status</th>
+                        <th class="px-6 py-4 font-semibold text-right">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    @forelse($transactions as $index => $trx)
+                    <tr class="hover:bg-gray-50 transition">
+                        <td class="px-6 py-4">
+                            <div class="text-center text-sm text-gray-500">{{ $transactions->firstItem() + $index }}</div>
+                        </td>
 
-                    <td class="px-6 py-4">
-                        <span class="font-bold text-gray-700">#{{ $trx->id }}</span>
-                        <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($trx->date)->format('d M Y, H:i') }}</p>
-                    </td>
+                        <td class="px-6 py-4">
+                            <span class="font-bold text-gray-700">#{{ $trx->id }}</span>
+                            <p class="text-xs text-gray-500">{{ \Carbon\Carbon::parse($trx->date)->format('d M Y, H:i') }}</p>
+                        </td>
 
-                    <td class="px-6 py-4">
-                        @if($trx->type === 'SETOR')
-                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">SETOR</span>
-                        @else
-                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-md">TARIK</span>
-                        @endif
-                    </td>
-
-                    <td class="px-6 py-4 font-bold text-gray-800">
-                        Rp {{ number_format($trx->total, 0, ',', '.') }}
-                    </td>
-
-                    <td class="px-6 py-4">
-                        @php
-                            $status = $trx->status;
-                        @endphp
-                        @if ($trx->type === 'SETOR')
-                            <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-full">SETOR</span>
-                        @else
-                            @if ($status === 'SUCCESS')
-                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ $status }}</span>
-                            @elseif ($status === 'PENDING')
-                                <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">{{ $status }}</span>
-                            @elseif ($status === 'FAILED')
-                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                        <td class="px-6 py-4">
+                            @if($trx->type === 'SETOR')
+                                <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">SETOR</span>
+                            @else
+                                <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-md">TARIK</span>
                             @endif
-                        @endif
-                    </td>
+                        </td>
 
-                    <td class="px-6 py-4 text-right">
-                        @php
-                            $model = $trx->model;
-                        @endphp
-                        <a href="{{ 
-                            $model === 'transaction'
-                                ? route('nasabah.history.transaction', $trx->id)
-                                : route('nasabah.history.withdrawal', $trx->id)
-                        }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center justify-end gap-1">
-                            Detail
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                        </a>
-                    </td>
-                </tr>
+                        <td class="px-6 py-4 font-bold text-gray-800">
+                            Rp {{ number_format($trx->total, 0, ',', '.') }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            @php $status = $trx->status; @endphp
+                            @if ($trx->type === 'SETOR')
+                                <span class="px-2 py-1 bg-gray-100 text-gray-700 text-xs font-bold rounded-full">SETOR</span>
+                            @else
+                                @if ($status === 'SUCCESS')
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                                @elseif ($status === 'PENDING')
+                                    <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                                @elseif ($status === 'FAILED')
+                                    <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                                @endif
+                            @endif
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            @php $model = $trx->model; @endphp
+                            <a href="{{ $model === 'transaction' ? route('nasabah.history.transaction', $trx->id) : route('nasabah.history.withdrawal', $trx->id) }}" class="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center justify-end gap-1">
+                                Detail
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                            </a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="6" class="px-6 py-8 text-center text-gray-500">Belum ada riwayat transaksi.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Mobile list -->
+        <div class="sm:hidden">
+            <div class="divide-y divide-gray-100">
+                @forelse($transactions as $index => $trx)
+                    <div class="p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <div class="text-sm text-gray-500">#{{ $trx->id }} · <span class="font-medium">{{ \Carbon\Carbon::parse($trx->date)->format('d M Y') }}</span></div>
+                                <p class="text-xs text-gray-400 mt-1">{{ \Carbon\Carbon::parse($trx->date)->format('H:i') }}</p>
+                            </div>
+                            <div class="text-right">
+                                <div class="font-bold text-gray-800">Rp {{ number_format($trx->total, 0, ',', '.') }}</div>
+                                <div class="text-xs mt-1">
+                                    @if($trx->type === 'SETOR')
+                                        <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-md">SETOR</span>
+                                    @else
+                                        @php $status = $trx->status; @endphp
+                                        @if ($status === 'SUCCESS')
+                                            <span class="px-2 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                                        @elseif ($status === 'PENDING')
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                                        @elseif ($status === 'FAILED')
+                                            <span class="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded-full">{{ $status }}</span>
+                                        @endif
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 flex items-center justify-between">
+                            <div class="text-xs text-gray-500">Tipe: <span class="font-semibold">{{ $trx->type }}</span></div>
+                            @php $model = $trx->model; @endphp
+                            <a href="{{ $model === 'transaction' ? route('nasabah.history.transaction', $trx->id) : route('nasabah.history.withdrawal', $trx->id) }}" class="text-blue-600 hover:underline text-sm font-medium">Detail →</a>
+                        </div>
+                    </div>
                 @empty
-                <tr>
-                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">Belum ada riwayat transaksi.</td>
-                </tr>
+                    <div class="p-6 text-center text-gray-500">Belum ada riwayat transaksi.</div>
                 @endforelse
-            </tbody>
-        </table>
-        
+            </div>
+        </div>
+
         <div class="p-4 border-t border-gray-100">
             {{ $transactions->links() }}
         </div>
