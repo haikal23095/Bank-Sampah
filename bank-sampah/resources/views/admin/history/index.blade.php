@@ -30,8 +30,9 @@
     </div>
 
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <thead>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[700px]">
+                <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                     <th class="px-6 py-4 font-semibold text-center">No</th>
                     <th class="px-6 py-4 font-semibold">ID / Tanggal</th>
@@ -82,6 +83,7 @@
                 @endforelse
             </tbody>
         </table>
+        </div>
         
         <div class="p-4 border-t border-gray-100">
             {{ $transactions->links() }}
