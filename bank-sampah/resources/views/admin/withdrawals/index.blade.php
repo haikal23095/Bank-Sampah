@@ -252,6 +252,11 @@
                         <!-- hidden raw numeric value submitted to server -->
                         <input id="amount" name="amount" type="hidden" value="0">
                     </div>
+                    <!-- Error Message for Insufficient Balance -->
+                    <div id="amountError" class="hidden mt-2 text-xs text-red-600 font-semibold flex items-center gap-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span id="amountErrorText"></span>
+                    </div>
                 </div>
             </div>
 
@@ -390,10 +395,16 @@
     // Bank Inputs
     const bankNameInput = document.querySelector('input[name="bank_name"]');
     const accountNumberInput = document.querySelector('input[name="account_number"]');
+    
+    // Store current nasabah balance as numeric value
+    let currentNasabahBalance = 0;
 
     function selectNasabah(n) {
         searchInput.value = n.name;
         userIdInput.value = n.id;
+        
+        // Store balance as numeric value (remove formatting)
+        currentNasabahBalance = parseInt(n.balance.toString().replace(/[^0-9]/g, '')) || 0;
         
         // Populate Bank Info from database
         bankNameInput.value = n.bank_name;
@@ -408,15 +419,25 @@
         searchContainer.classList.add('opacity-40', 'pointer-events-none');
         selectionInfo.classList.remove('hidden');
         resultsDiv.classList.add('hidden');
+        
+        // Clear and validate amount
+        document.getElementById('amountDisplay').value = '';
+        validateAmount();
     }
 
     function clearSelection() {
         searchInput.value = '';
         userIdInput.value = '';
+        currentNasabahBalance = 0;
         
         // Reset Bank Info
         bankNameInput.value = '';
         accountNumberInput.value = '';
+        
+        // Clear amount and error
+        document.getElementById('amountDisplay').value = '';
+        document.getElementById('amount').value = '0';
+        validateAmount();
         
         selectionInfo.classList.add('hidden');
         searchContainer.classList.remove('opacity-40', 'pointer-events-none');
@@ -579,6 +600,9 @@
     // FORMAT RUPIAH
     const amountInput = document.querySelector('#amountDisplay');
     const amountHidden = document.querySelector('#amount');
+    const amountError = document.getElementById('amountError');
+    const amountErrorText = document.getElementById('amountErrorText');
+    const withdrawSubmitBtn = document.getElementById('withdrawSubmitBtn');
 
     function formatRupiah(angka, prefix = '') {
         let number_string = angka.replace(/[^,\d]/g, '').toString(),
@@ -597,14 +621,59 @@
         return rupiah;
     }
 
-        function parseRupiah(value) {
+    function parseRupiah(value) {
         return parseInt(value.replace(/[^0-9]/g, '')) || 0;
+    }
+
+    function validateAmount() {
+        const numericValue = parseRupiah(amountInput.value);
+        
+        // Show error if no nasabah selected
+        if (currentNasabahBalance === 0 && numericValue > 0) {
+            amountError.classList.remove('hidden');
+            amountErrorText.textContent = 'Silakan pilih nasabah terlebih dahulu';
+            withdrawSubmitBtn.disabled = true;
+            withdrawSubmitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+        
+        // Show error if amount exceeds balance
+        if (numericValue > 0 && numericValue > currentNasabahBalance) {
+            amountError.classList.remove('hidden');
+            amountErrorText.textContent = `Nominal melebihi saldo tersedia. Maksimal: Rp ${formatRupiah(currentNasabahBalance.toString())}`;
+            withdrawSubmitBtn.disabled = true;
+            withdrawSubmitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+
+        if (numericValue < 10000) {
+            amountError.classList.remove('hidden');
+            amountErrorText.textContent = 'Nominal minimal adalah Rp 10.000';
+            withdrawSubmitBtn.disabled = true;
+            withdrawSubmitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+            
+        // Show error if amount is zero or empty
+        if (numericValue === 0) {
+            amountError.classList.add('hidden');
+            withdrawSubmitBtn.disabled = true;
+            withdrawSubmitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            return false;
+        }
+        
+        // Hide error and enable submit if all valid
+        amountError.classList.add('hidden');
+        withdrawSubmitBtn.disabled = false;
+        withdrawSubmitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        return true;
     }
 
     function updateAmountFormat() {
         const numericValue = parseRupiah(amountInput.value);
         amountInput.value = formatRupiah(numericValue.toString());
         amountHidden.value = numericValue;
+        validateAmount();
     }
 
     // Listener untuk input amount
@@ -613,6 +682,10 @@
 
     // Trigger saat load apabila ada old value
     updateAmountFormat();
+    
+    // Initialize submit button as disabled
+    withdrawSubmitBtn.disabled = true;
+    withdrawSubmitBtn.classList.add('opacity-50', 'cursor-not-allowed');
 
 </script>
 @endsection
