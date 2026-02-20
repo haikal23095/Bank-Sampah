@@ -70,6 +70,7 @@ Route::middleware(['auth'])->prefix('nasabah')->group(function () {
         // Dashboard routes
         Route::get('/', [NasabahDashboardController::class, 'index'])->name('nasabah.index');
         Route::get('/dashboard', [NasabahDashboardController::class, 'index'])->name('nasabah.dashboard');
+        Route::get('/dashboard/chart', [NasabahDashboardController::class, 'getChartData'])->name('nasabah.dashboard.chart');
 
         // Catalog routes
         Route::get('/catalog', [NasabahCatalogController::class, 'index'])->name('nasabah.catalog.index');
