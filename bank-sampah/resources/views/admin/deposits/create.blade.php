@@ -19,6 +19,26 @@
                 </div>
             </div>
 
+            <!-- Selection Info (Hidden by default) -->
+            <div id="selection-info" class="hidden mb-6 p-4 bg-green-50 border border-green-100 rounded-xl animate-in slide-in-from-top-2 duration-300">
+                <div class="flex items-center gap-4">
+                    <div id="info-initial" class="flex-shrink-0 h-12 w-12 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-xl shadow-sm transition-transform duration-500 scale-100">
+                        <!-- Initial -->
+                    </div>
+                    <div class="flex-grow">
+                        <div id="info-name" class="font-bold text-gray-800 text-lg flex items-center gap-2">
+                            <!-- Name -->
+                        </div>
+                        <div id="info-balance" class="text-xs text-green-700 font-bold bg-green-100 px-3 py-1 rounded-full inline-block mt-1 border border-green-200">
+                            <!-- Balance -->
+                        </div>
+                    </div>
+                    <button type="button" onclick="clearSelection()" class="p-2 text-green-400 hover:text-green-600 hover:bg-green-100 rounded-xl transition-all active:rotate-90">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+            </div>
+
             <div class="mb-6 relative" id="nasabah-search-container">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nasabah</label>
                 <div class="relative">
@@ -238,14 +258,49 @@
     }
 
     // --- Autocomplete Logic Nasabah ---
-    const nasabahs = @json($nasabahs);
+    const nasabahs = [
+        @foreach($nasabahs as $n)
+            { 
+                id: "{{ $n->id }}", 
+                name: "{{ $n->name }}", 
+                email: "{{ $n->email }}", 
+                balance: "{{ number_format($n->wallet->balance ?? 0, 0, ',', '.') }}" 
+            },
+        @endforeach
+    ];
     const wasteTypes = @json($wasteTypes);
     
-    // logic nasabah search... (existing)
     const searchInput = document.getElementById('nasabah-search-input');
     const resultsDiv = document.getElementById('nasabah-results');
     const userIdInput = document.getElementById('user_id_input');
     const searchContainer = document.getElementById('nasabah-search-container');
+    const selectionInfo = document.getElementById('selection-info');
+    const infoName = document.getElementById('info-name');
+    const infoBalance = document.getElementById('info-balance');
+    const infoInitial = document.getElementById('info-initial');
+
+    function selectNasabah(n) {
+        searchInput.value = n.name;
+        userIdInput.value = n.id;
+        
+        // Show info display
+        infoName.innerHTML = `<span class="text-gray-500 font-normal">Nasabah:</span> ${n.name}`;
+        infoBalance.textContent = `Saldo Saat Ini: Rp ${n.balance}`;
+        infoInitial.textContent = n.name.charAt(0).toUpperCase();
+        
+        // Hide search input area
+        searchContainer.classList.add('hidden');
+        selectionInfo.classList.remove('hidden');
+        resultsDiv.classList.add('hidden');
+    }
+
+    function clearSelection() {
+        searchInput.value = '';
+        userIdInput.value = '';
+        selectionInfo.classList.add('hidden');
+        searchContainer.classList.remove('hidden');
+        searchInput.focus();
+    }
 
     searchInput.addEventListener('input', function() {
         const query = this.value.toLowerCase().trim();
@@ -265,16 +320,18 @@
         if (filtered.length > 0) {
             filtered.forEach(n => {
                 const div = document.createElement('div');
-                div.className = "px-4 py-2 hover:bg-green-50 cursor-pointer border-b border-gray-50 last:border-b-0 group";
+                div.className = "px-4 py-3 hover:bg-green-50 cursor-pointer border-b border-gray-50 last:border-b-0 group flex justify-between items-center";
                 div.innerHTML = `
-                    <p class="font-bold text-gray-800 group-hover:text-green-700">${n.name}</p>
-                    <p class="text-xs text-gray-500">${n.email}</p>
+                    <div>
+                        <p class="font-bold text-gray-800 group-hover:text-green-700">${n.name}</p>
+                        <p class="text-[10px] text-gray-500">${n.email}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase">Saldo</p>
+                        <p class="text-xs font-bold text-green-600">Rp ${n.balance}</p>
+                    </div>
                 `;
-                div.addEventListener('click', () => {
-                    searchInput.value = `${n.name} - ${n.email}`;
-                    userIdInput.value = n.id;
-                    resultsDiv.classList.add('hidden');
-                });
+                div.addEventListener('click', () => selectNasabah(n));
                 resultsDiv.appendChild(div);
             });
             resultsDiv.classList.remove('hidden');

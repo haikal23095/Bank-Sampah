@@ -366,7 +366,14 @@
     // --- Data Nasabah for Autocomplete ---
     const nasabahs = [
         @foreach($nasabahs as $n)
-            { id: "{{ $n->id }}", name: "{{ $n->name }}", email: "{{ $n->email }}", balance: "{{ number_format($n->wallet->balance ?? 0, 0, ',', '.') }}" },
+            { 
+                id: "{{ $n->id }}", 
+                name: "{{ $n->name }}", 
+                email: "{{ $n->email }}", 
+                balance: "{{ number_format($n->wallet->balance ?? 0, 0, ',', '.') }}",
+                bank_name: "{{ $n->bank_name ?? '' }}",
+                account_number: "{{ $n->account_number ?? '' }}"
+            },
         @endforeach
     ];
 
@@ -379,10 +386,18 @@
     const infoName = document.getElementById('info-name');
     const infoBalance = document.getElementById('info-balance');
     const infoInitial = document.getElementById('info-initial');
+    
+    // Bank Inputs
+    const bankNameInput = document.querySelector('input[name="bank_name"]');
+    const accountNumberInput = document.querySelector('input[name="account_number"]');
 
     function selectNasabah(n) {
         searchInput.value = n.name;
         userIdInput.value = n.id;
+        
+        // Populate Bank Info from database
+        bankNameInput.value = n.bank_name;
+        accountNumberInput.value = n.account_number;
         
         // Show info display
         infoName.innerHTML = `<span class="text-gray-500 font-normal">Nama Nasabah:</span> ${n.name}`;
@@ -398,6 +413,11 @@
     function clearSelection() {
         searchInput.value = '';
         userIdInput.value = '';
+        
+        // Reset Bank Info
+        bankNameInput.value = '';
+        accountNumberInput.value = '';
+        
         selectionInfo.classList.add('hidden');
         searchContainer.classList.remove('opacity-40', 'pointer-events-none');
         searchInput.focus();
