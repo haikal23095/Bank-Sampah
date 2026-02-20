@@ -17,9 +17,12 @@ class DepositController extends Controller
     // 1. Tampilkan Form Setor Sampah
     public function create()
     {
-        // Ambil data Nasabah saja
-        $nasabahs = User::where('role', 'nasabah')->orderBy('name')->get();
-        
+        // Ambil data Nasabah saja dengan saldo wallet-nya
+        $nasabahs = User::where('role', 'nasabah')
+            ->with('wallet')
+            ->orderBy('name')
+            ->get();
+
         // Ambil Jenis Sampah untuk dropdown
         $wasteTypes = WasteType::all();
 
@@ -76,7 +79,7 @@ class DepositController extends Controller
             DB::commit();
 
             return redirect()->route('admin.deposits.create')
-                             ->with('success', 'Transaksi berhasil! Saldo nasabah bertambah Rp ' . number_format($totalAmount));
+                ->with('success', 'Transaksi berhasil! Saldo nasabah bertambah Rp ' . number_format($totalAmount));
 
         } catch (\Exception $e) {
             DB::rollback();
