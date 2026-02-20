@@ -278,7 +278,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">No. Rekening</label>
-                    <input type="text" name="account_number" inputmode="numeric" pattern="[0-9]*" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="1234xxx">
+                    <input type="text" name="account_number" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');" class="w-full border border-gray-300 rounded px-3 py-2 text-sm" placeholder="1234xxx">
                 </div>
             </div>
 
