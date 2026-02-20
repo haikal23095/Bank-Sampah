@@ -6,6 +6,7 @@
     <title>Bank Sampah - @yield('title')</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
@@ -24,7 +25,7 @@
             </button>
             <a href="#" class="flex items-center gap-2 text-green-600 font-bold text-lg">
                 {{-- <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> --}}
-                <img src="{{ asset('img/logo.png') }}" alt="Logo EcoBank" class="w-8 h-8">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo Bank Sampah" class="w-12 h-12">
                 <span>Bank Sampah</span>
             </a>
         </header>
@@ -37,7 +38,7 @@
                 <div class="h-20 flex items-center justify-between px-8">
                     <a href="{{ strtoupper(Auth::user()->role) === 'ADMIN' ? route('admin.dashboard') : route('nasabah.dashboard') }}" class="flex items-center gap-2 text-green-600 font-bold text-xl">
                         {{-- <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg> --}}
-                        <img src="{{ asset('img/logo.png') }}" alt="Logo EcoBank" class="w-8 h-8">
+                        <img src="{{ asset('img/logo.png') }}" alt="Logo Bank Sampah" class="w-12 h-12">
                         <span>Bank Sampah</span>
                     </a>
                     <!-- Close button (Mobile only) -->
@@ -118,8 +119,20 @@
             </div>
         </aside>
 
-        <main class="flex-1 lg:ml-64 p-4 lg:p-8 mt-16 lg:mt-0 h-screen overflow-y-auto">
-            @yield('content')
+        <main class="flex-1 lg:ml-64 p-4 lg:p-8 mt-16 lg:mt-0 h-screen overflow-y-auto flex flex-col">
+            <div class="flex-grow">
+                @yield('content')
+            </div>
+
+            <footer class="mt-auto pt-10 pb-6 text-center">
+                <div class="inline-block p-1 px-3 rounded-full bg-white border border-gray-100 shadow-sm">
+                    <p class="text-xs text-gray-400">
+                        &copy; {{ date('Y') }} <span class="text-green-600 font-semibold">EcoBank</span> 
+                        <span class="mx-2 text-gray-200">|</span> 
+                        Sistem Informasi Bank Sampah Terintegrasi
+                    </p>
+                </div>
+            </footer>
         </main>
     </div>
 

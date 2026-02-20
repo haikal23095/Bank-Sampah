@@ -316,7 +316,7 @@
             </div>
 
             <div class="px-6 pb-6">
-                <h3 class="text-lg font-bold text-gray-800">ECOBANK RECEIPT</h3>
+                <h3 class="text-lg font-bold text-gray-800">BANK SAMPAH RECEIPT</h3>
                 <p class="text-xs text-gray-400 uppercase tracking-widest mb-6">Digital Waste Management System</p>
 
                 <div class="text-left text-sm border-t border-b border-dashed border-gray-300 py-4 space-y-2 mb-6">

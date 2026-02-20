@@ -45,7 +45,7 @@
                         <p class="text-xs">Total Saldo Tersedia</p>
                         <p class="text-2xl font-bold mt-2">Rp {{ number_format(optional($wallet)->balance ?? 0, 0, ',', '.') }}</p>
                     </div>
-                    <div class="text-sm bg-emerald-700 px-3 py-1 rounded-full">EcoBank Wallet</div>
+                    <div class="text-sm bg-emerald-700 px-3 py-1 rounded-full">Bank Sampah Wallet</div>
                 </div>
             </div>
         </div>
