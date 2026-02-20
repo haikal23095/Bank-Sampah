@@ -56,12 +56,28 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="font-bold text-gray-800">Statistik Setoran (7 Hari Terakhir)</h3>
-                <select class="text-sm border-gray-300 rounded-md text-gray-600 bg-gray-50 p-1">
-                    <option>Mingguan</option>
-                    <option>Bulanan</option>
-                </select>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <div>
+                    <h3 class="font-bold text-gray-800">Statistik Setoran</h3>
+                    <p id="chartTitle" class="text-sm text-gray-500">-</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="flex border border-gray-200 rounded-md overflow-hidden">
+                        <button id="prevBtn" class="p-1 hover:bg-gray-100 border-r border-gray-200">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button id="nextBtn" class="p-1 hover:bg-gray-100">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                    <select id="chartFilter" class="text-sm border-gray-300 rounded-md text-gray-600 bg-gray-50 p-1 focus:ring-green-500 focus:border-green-500">
+                        <option value="mingguan">Mingguan</option>
+                        <option value="bulanan">Bulanan</option>
+                    </select>
+                </div>
+            </div>
+            <div id="chartLoading" class="hidden absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             </div>
             <div class="relative h-64 w-full">
                 <canvas id="setoranChart"></canvas>
@@ -94,14 +110,23 @@
     </div>
 
     <script>
+        const formatIDR = (val) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(val);
+
+        let currentOffset = 0;
+        let chartData = {
+            labels: [],
+            weight: [],
+            amount: []
+        };
+
         const ctx = document.getElementById('setoranChart').getContext('2d');
-        new Chart(ctx, {
+        const setoranChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: {!! json_encode($last7Days->pluck('day')) !!},
+                labels: [],
                 datasets: [{
                     label: 'Berat (kg)',
-                    data: {!! json_encode($last7Days->pluck('weight')) !!},
+                    data: [],
                     borderColor: '#16a34a', // green-600
                     backgroundColor: 'rgba(22, 163, 74, 0.1)',
                     tension: 0.4,
@@ -111,12 +136,69 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: { 
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const index = context.dataIndex;
+                                return [
+                                    `Berat: ${context.raw} kg`,
+                                    `Nilai: ${formatIDR(chartData.amount[index])}`
+                                ];
+                            }
+                        }
+                    }
+                },
                 scales: {
-                    y: { beginAtZero: true, grid: { borderDash: [2, 4] } },
+                    y: { 
+                        beginAtZero: true, 
+                        grid: { borderDash: [2, 4] },
+                        title: { display: true, text: 'Berat (kg)' }
+                    },
                     x: { grid: { display: false } }
                 }
             }
         });
+
+        async function updateChart() {
+            const type = document.getElementById('chartFilter').value;
+            const loading = document.getElementById('chartLoading');
+            loading.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`{{ route('admin.dashboard.chart') }}?type=${type}&offset=${currentOffset}`);
+                const data = await response.json();
+                
+                chartData = data;
+                document.getElementById('chartTitle').innerText = data.title;
+                
+                setoranChart.data.labels = data.labels;
+                setoranChart.data.datasets[0].data = data.weight;
+                setoranChart.update();
+            } catch (error) {
+                console.error('Error fetching chart data:', error);
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('chartFilter').addEventListener('change', () => {
+            currentOffset = 0;
+            updateChart();
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            currentOffset--;
+            updateChart();
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            currentOffset++;
+            updateChart();
+        });
+
+        // Initial Load
+        updateChart();
     </script>
 @endsection

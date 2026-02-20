@@ -31,6 +31,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('admin.dashboard');
+    Route::get('/dashboard/chart-data', [AdminDashboardController::class, 'getChartData'])->name('admin.dashboard.chart');
 
     // --- FITUR SETOR SAMPAH ---
     Route::get('/setor-sampah', [DepositController::class, 'create'])->name('admin.deposits.create');
@@ -82,12 +83,14 @@ Route::middleware(['auth'])->prefix('nasabah')->group(function () {
         Route::get('/riwayat', [NasabahHistoryController::class, 'index'])->name('nasabah.history.index');
 
         // Transaction Detail
-        Route::get('/riwayat/transaction/{id}',
+        Route::get(
+            '/riwayat/transaction/{id}',
             [NasabahHistoryController::class, 'showTransaction']
         )->name('nasabah.history.transaction');
 
         // Withdrawal Detail
-        Route::get('/riwayat/withdrawal/{id}',
+        Route::get(
+            '/riwayat/withdrawal/{id}',
             [NasabahHistoryController::class, 'showWithdrawal']
         )->name('nasabah.history.withdrawal');
     });
