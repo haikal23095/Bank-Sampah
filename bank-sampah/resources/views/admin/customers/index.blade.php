@@ -123,7 +123,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                    <input type="number" name="phone" required oninput="if(this.value.length > 12) this.value = this.value.slice(0, 12)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="0812...">
+                    <input type="text" name="phone" required oninput="formatPhoneNumber(this)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="0812-1234-5678">
                 </div>
             </div>
 
@@ -181,7 +181,7 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                    <input type="number" name="phone" id="edit_phone" required oninput="if(this.value.length > 12) this.value = this.value.slice(0, 12)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    <input type="text" name="phone" id="edit_phone" required oninput="formatPhoneNumber(this)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
                 </div>
             </div>
 
@@ -294,6 +294,28 @@
         setTimeout(() => {
             editModalOverlay.classList.add('hidden');
         }, 300);
+    }
+
+    // Format Phone Number Function
+    function formatPhoneNumber(input) {
+        // Remove all non-numeric characters
+        let value = input.value.replace(/\D/g, '');
+        
+        // Limit to 12 digits
+        if (value.length > 12) {
+            value = value.slice(0, 12);
+        }
+        
+        // Format as 4-4-4 pattern (e.g., 0812-1234-5678)
+        let formatted = '';
+        for (let i = 0; i < value.length; i++) {
+            if (i > 0 && i % 4 === 0) {
+                formatted += '-';
+            }
+            formatted += value[i];
+        }
+        
+        input.value = formatted;
     }
 
     // Tutup modal jika klik di luar area konten
