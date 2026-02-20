@@ -351,7 +351,7 @@
                     <span class="text-xl font-bold text-gray-900">Rp {{ number_format($trxNew->amount, 0, ',', '.') }}</span>
                 </div>
 
-                <p class="text-xs text-gray-400 italic mb-6">"Terima kasih telah berkontribusi menjaga bumi bersama EcoBank. Simpan struk ini sebagai bukti transaksi yang sah."</p>
+                <p class="text-xs text-gray-400 italic mb-6">"Terima kasih telah berkontribusi menjaga bumi bersama Bank Sampah. Simpan struk ini sebagai bukti transaksi yang sah."</p>
 
                 <div class="flex gap-2">
                     <button onclick="window.print()" class="flex-1 bg-white border border-gray-300 text-gray-700 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 flex items-center justify-center gap-2">

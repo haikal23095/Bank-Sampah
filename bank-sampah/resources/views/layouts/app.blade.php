@@ -127,7 +127,7 @@
             <footer class="mt-auto pt-10 pb-6 text-center">
                 <div class="inline-block p-1 px-3 rounded-full bg-white border border-gray-100 shadow-sm">
                     <p class="text-xs text-gray-400">
-                        &copy; {{ date('Y') }} <span class="text-green-600 font-semibold">EcoBank</span> 
+                        &copy; {{ date('Y') }} <span class="text-green-600 font-semibold">Bank Sampah</span> 
                         <span class="mx-2 text-gray-200">|</span> 
                         Sistem Informasi Bank Sampah Terintegrasi
                     </p>
