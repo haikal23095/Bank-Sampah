@@ -108,41 +108,59 @@
             </button>
         </div>
 
-        <form action="{{ route('admin.customers.store') }}" method="POST" class="p-6 space-y-4">
+        <form id="createForm" action="{{ route('admin.customers.store') }}" method="POST" class="p-6 space-y-4">
             @csrf
             
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
-                <input type="text" name="name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Contoh: Budi Santoso">
+                <input type="text" name="name" value="{{ old('name') }}" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Contoh: Budi Santoso">
+                @if($errors->has('name'))
+                    <p class="mt-1 text-sm text-red-600">{{ $errors->first('name') }}</p>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" required pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Format email tidak valid (contoh: user@gmail.com)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="email@contoh.com">
+                    <input type="email" name="email" value="{{ old('email') }}" required pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Format email tidak valid (contoh: user@gmail.com)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="email@contoh.com">
+                    @if($errors->has('email'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('email') }}</p>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
-                    <input type="text" name="phone" required oninput="formatPhoneNumber(this)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="0812-1234-5678">
+                    <input type="text" name="phone" value="{{ old('phone') }}" required oninput="formatPhoneNumber(this)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="0812-1234-5678">
+                    @if($errors->has('phone'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('phone') }}</p>
+                    @endif
                 </div>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
                 <input type="password" name="password" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Minimal 6 karakter">
+                @if($errors->has('password'))
+                    <p class="mt-1 text-sm text-red-600">{{ $errors->first('password') }}</p>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white">
-                        <option value="nasabah" selected>Nasabah</option>
-                        <option value="admin">Admin</option>
+                        <option value="nasabah" {{ old('role', 'nasabah') === 'nasabah' ? 'selected' : '' }}>Nasabah</option>
+                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
                     </select>
+                    @if($errors->has('role'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('role') }}</p>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat (Opsional)</label>
-                    <input type="text" name="address" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Kota / Jalan">
+                    <input type="text" name="address" value="{{ old('address') }}" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Kota / Jalan">
+                    @if($errors->has('address'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('address') }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -172,22 +190,34 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Nama Lengkap</label>
                 <input type="text" name="name" id="edit_name" required class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                @if($errors->has('name'))
+                    <p class="mt-1 text-sm text-red-600">{{ $errors->first('name') }}</p>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                     <input type="email" name="email" id="edit_email" required pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" title="Format email tidak valid (contoh: user@gmail.com)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    @if($errors->has('email'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('email') }}</p>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">No. Telepon</label>
                     <input type="text" name="phone" id="edit_phone" required oninput="formatPhoneNumber(this)" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    @if($errors->has('phone'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('phone') }}</p>
+                    @endif
                 </div>
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-1">Password (Kosongkan jika tidak ingin diubah)</label>
                 <input type="password" name="password" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none" placeholder="Minimal 6 karakter">
+                @if($errors->has('password'))
+                    <p class="mt-1 text-sm text-red-600">{{ $errors->first('password') }}</p>
+                @endif
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -197,10 +227,16 @@
                         <option value="nasabah">Nasabah</option>
                         <option value="admin">Admin</option>
                     </select>
+                    @if($errors->has('role'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('role') }}</p>
+                    @endif
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Alamat</label>
                     <input type="text" name="address" id="edit_address" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                    @if($errors->has('address'))
+                        <p class="mt-1 text-sm text-red-600">{{ $errors->first('address') }}</p>
+                    @endif
                 </div>
             </div>
 
@@ -399,8 +435,45 @@
     @endif
 
     @if($errors->any())
-        showNotification('error', 'Gagal!', "{{ implode(', ', $errors->all()) }}");
+        @if(session('open_create_modal'))
+            // Re-open create modal so inline errors are visible
+            openModal();
+        @elseif(session('open_edit_modal'))
+            // Re-open edit modal and populate with old input
+                const oldEditCustomer = {!! json_encode([
+                    'id' => session('open_edit_id'),
+                    'name' => old('name'),
+                    'email' => old('email'),
+                    'phone' => old('phone'),
+                    'role' => old('role'),
+                    'address' => old('address'),
+                ]) !!};
+                openEditModal(oldEditCustomer);
+        @else
+            showNotification('error', 'Gagal!', "{{ implode(', ', $errors->all()) }}");
+        @endif
     @endif
+
+        // Ensure phone inputs send only digits (strip formatting) on submit
+        const createFormEl = document.getElementById('createForm');
+        if (createFormEl) {
+            createFormEl.addEventListener('submit', function (e) {
+                const phone = this.querySelector('input[name="phone"]');
+                if (phone) {
+                    phone.value = phone.value.replace(/\D/g, '');
+                }
+            });
+        }
+
+        const editFormEl = document.getElementById('editForm');
+        if (editFormEl) {
+            editFormEl.addEventListener('submit', function (e) {
+                const phone = this.querySelector('input[name="phone"]');
+                if (phone) {
+                    phone.value = phone.value.replace(/\D/g, '');
+                }
+            });
+        }
 
     // Real-time Search Filtering
     const searchInput = document.getElementById('searchInput');

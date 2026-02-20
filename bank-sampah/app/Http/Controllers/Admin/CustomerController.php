@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
@@ -29,7 +30,7 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'unique:users,email', 'regex:/^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,7}$/'],
             'password' => 'required|min:6',
@@ -49,6 +50,13 @@ class CustomerController extends Controller
             'phone.digits_between' => 'No. Telepon harus antara 10 sampai 12 digit.',
         ]);
 
+        if ($validator->fails()) {
+            return redirect()->route('admin.customers.index')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('open_create_modal', true);
+        }
+
         User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -66,7 +74,7 @@ class CustomerController extends Controller
     {
         $user = User::findOrFail($id);
 
-        $request->validate([
+        $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', 'unique:users,email,' . $id, 'regex:/^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,7}$/'],
             'password' => 'nullable|min:6',
@@ -84,6 +92,14 @@ class CustomerController extends Controller
             'phone.numeric' => 'No. Telepon harus berupa angka.',
             'phone.digits_between' => 'No. Telepon harus antara 10 sampai 12 digit.',
         ]);
+
+        if ($validator->fails()) {
+            return redirect()->route('admin.customers.index')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('open_edit_modal', true)
+                ->with('open_edit_id', $id);
+        }
 
         $data = [
             'name' => $request->name,
