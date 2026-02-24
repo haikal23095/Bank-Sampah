@@ -532,8 +532,6 @@
     }
 
     function updateAmountFormat() {
-        console.log('hallooo');
-        
         const numericValue = parseRupiah(pricePerKgDisplay.value);
         pricePerKgDisplay.value = formatRupiah(numericValue.toString());
         pricePerKgHidden.value = numericValue;
