@@ -40,12 +40,14 @@
             </div>
 
             <div class="bg-emerald-600 text-white rounded-2xl p-6 shadow-md">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs">Total Saldo Tersedia</p>
-                        <p class="text-2xl font-bold mt-2">Rp {{ number_format(optional($wallet)->balance ?? 0, 0, ',', '.') }}</p>
+                <div class="flex flex-wrap items-center justify-between gap-4">
+                    <div class="min-w-fit">
+                        <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-100">Total Saldo Tersedia</p>
+                        <p class="text-2xl font-black mt-1">Rp {{ number_format(optional($wallet)->balance ?? 0, 0, ',', '.') }}</p>
                     </div>
-                    <div class="text-sm bg-emerald-700 px-3 py-1 rounded-full">Bank Sampah Wallet</div>
+                    <div class="text-[10px] font-bold bg-emerald-700/50 backdrop-blur-sm px-3 py-1.5 rounded-lg border border-emerald-500/30">
+                        WALLET
+                    </div>
                 </div>
             </div>
         </div>
@@ -60,19 +62,18 @@
                     @csrf
                     <input type="hidden" name="method" id="methodInput" value="CASH">
                     
-                    
-                    <div class="grid grid-cols-3 gap-4 items-center mb-4">
-                        <div class="col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start mb-6">
+                        <div class="md:col-span-2">
                             <label class="text-sm text-gray-600 font-medium">Metode Penarikan</label>
                             <div class="flex gap-3 mt-3">
-                                <button type="button" data-method="CASH" class="method-btn flex-1 rounded-xl border border-gray-100 px-4 py-3 text-sm text-gray-600 bg-white"> 
+                                <button type="button" data-method="CASH" class="method-btn flex-1 rounded-xl border border-gray-100 px-4 py-3 text-sm text-gray-600 bg-white transition-all"> 
                                     <div class="flex flex-col items-center">
                                         <svg class="w-6 h-6 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2"/></svg>
                                         <span class="font-semibold">Tunai (Cash)</span>
                                     </div>
                                 </button>
 
-                                <button type="button" data-method="TRANSFER" class="method-btn flex-1 rounded-xl border border-gray-100 px-4 py-3 text-sm text-gray-600 bg-white">
+                                <button type="button" data-method="TRANSFER" class="method-btn flex-1 rounded-xl border border-gray-100 px-4 py-3 text-sm text-gray-600 bg-white transition-all">
                                     <div class="flex flex-col items-center">
                                         <svg class="w-6 h-6 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1"/></svg>
                                         <span class="font-semibold">Transfer Bank</span>
@@ -81,15 +82,12 @@
                             </div>
                         </div>
 
-                        <div>
+                        <div class="w-full">
                             <label for="amountInput" class="text-sm text-gray-600 font-medium">Jumlah Penarikan (Rp)</label>
-                            <input type="text" name="amount_display" id="amountInput" placeholder="Minimal 10.000" class="mt-2 w-full rounded-xl border border-gray-100 px-4 py-3 bg-gray-50 text-gray-600 font-semibold" value="{{ old('amount_display') }}" />
+                            <input type="text" name="amount_display" id="amountInput" placeholder="Minimal 10.000" class="mt-3 w-full rounded-xl border border-gray-100 px-4 py-3.5 bg-gray-50 text-gray-600 font-bold text-lg focus:ring-2 focus:ring-emerald-500 outline-none transition-all" value="{{ old('amount_display') }}" />
                             <input type="hidden" name="amount" id="amountHidden" value="{{ old('amount') }}" />
                             @error('amount')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
-                            @enderror
-                            @error('amount_display')
-                                <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                                <p class="text-red-600 text-xs mt-1 font-medium">{{ $message }}</p>
                             @enderror
                         </div>
                     </div>
@@ -129,7 +127,7 @@
 
 
 <!-- Notification Modal -->
-<div id="notificationModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
+<div id="notificationModal" class="fixed inset-0 bg-black/60 z-60 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="notificationContentModal">
         <div class="p-8 text-center border-b border-gray-50">
             <div id="notificationIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
@@ -218,8 +216,28 @@
         btn.addEventListener('click', function() {
             const method = this.getAttribute('data-method');
             document.getElementById('methodInput').value = method;
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('border-emerald-300', 'bg-emerald-50'));
-            this.classList.add('border-emerald-300', 'bg-emerald-50');
+            
+            // Reset all buttons to default state
+            document.querySelectorAll('.method-btn').forEach(b => {
+                b.classList.remove('border-emerald-500', 'bg-emerald-50', 'ring-2', 'ring-emerald-500/20');
+                b.classList.add('border-gray-100', 'bg-white');
+                // Reset icon color
+                const svg = b.querySelector('svg');
+                if(svg) {
+                    svg.classList.remove('text-emerald-600');
+                    svg.classList.add('text-gray-400');
+                }
+            });
+
+            // Set clicked button to active state
+            this.classList.remove('border-gray-100', 'bg-white');
+            this.classList.add('border-emerald-500', 'bg-emerald-50', 'ring-2', 'ring-emerald-500/20');
+            // Set active icon color
+            const activeSvg = this.querySelector('svg');
+            if(activeSvg) {
+                activeSvg.classList.remove('text-gray-400');
+                activeSvg.classList.add('text-emerald-600');
+            }
 
             // Show warning if transfer selected but no billing info
             const hasBank = "{{ $user->bank_name || $user->account_number ? '1' : '' }}";
