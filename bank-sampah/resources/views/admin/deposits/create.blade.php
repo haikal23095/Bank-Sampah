@@ -111,7 +111,7 @@
 </div>
 
 <!-- Notification Modal -->
-<div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4">
+<div id="notificationModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="notificationContentModal">
         <div class="p-8 text-center border-b border-gray-50">
             <div id="notificationIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">

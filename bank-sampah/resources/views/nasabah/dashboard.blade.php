@@ -80,7 +80,7 @@
             </div>
 
             <!-- Loading Spinner -->
-            <div id="chartLoading" class="hidden absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10 rounded-xl">
+            <div id="chartLoading" class="hidden absolute inset-0 bg-white/50 flex items-center justify-center z-10 rounded-xl">
                 <div class="flex flex-col items-center gap-2">
                     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     <span class="text-sm text-gray-600">Memuat data...</span>

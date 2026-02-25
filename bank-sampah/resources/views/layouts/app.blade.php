@@ -46,6 +46,7 @@
                     <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-400 hover:text-gray-600">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
+
                 </div>
 
                 <nav class="mt-4 space-y-1">
@@ -138,7 +139,7 @@
     </div>
 
     <!-- Global Logout Confirmation Modal -->
-    <div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-60 z-[100] hidden flex items-center justify-center p-4">
+    <div id="logoutModal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="logoutContent">
             <div class="p-8 text-center">
                 <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-50 text-red-500">

@@ -76,7 +76,7 @@
                     </select>
                 </div>
             </div>
-            <div id="chartLoading" class="hidden absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center z-10">
+            <div id="chartLoading" class="hidden absolute inset-0 bg-white/50 flex items-center justify-center z-10">
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
             </div>
             <div class="relative h-64 w-full">

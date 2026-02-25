@@ -98,7 +98,7 @@
     </div>
 </div>
 
-<div id="modalAdd" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+<div id="modalAdd" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-300" id="modalContent">
         
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
@@ -165,7 +165,7 @@
 </div>
 
 <!-- Modal Kelola Kategori -->
-<div id="modalManageCategories" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+<div id="modalManageCategories" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl transform scale-95 opacity-0 transition-all duration-300 overflow-hidden" id="modalManageContent">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <h3 class="text-lg font-bold text-gray-800">Kelola Kategori Sampah</h3>
@@ -238,7 +238,7 @@
 </div>
 
 <!-- Modal Edit Kategori -->
-<div id="modalEditCategory" class="fixed inset-0 bg-black bg-opacity-50 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+<div id="modalEditCategory" class="fixed inset-0 bg-black/50 z-[60] hidden flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform scale-95 opacity-0 transition-all duration-300" id="modalEditCategoryContent">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
             <h3 class="text-lg font-bold text-gray-800">Edit Kategori</h3>
@@ -269,7 +269,7 @@
 </div>
 
 <!-- Notification Modal -->
-<div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4">
+<div id="notificationModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="notificationContentModal">
         <div class="p-8 text-center border-b border-gray-50">
             <div id="notificationIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
@@ -285,7 +285,7 @@
 </div>
 
 <!-- Confirm Delete Modal -->
-<div id="confirmDeleteModal" class="fixed inset-0 bg-black bg-opacity-60 z-[70] hidden flex items-center justify-center p-4">
+<div id="confirmDeleteModal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="confirmDeleteContent">
         <div class="p-8 text-center">
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-100 text-red-600">

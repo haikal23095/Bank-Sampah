@@ -6,7 +6,7 @@
 <div class="max-w-6xl mx-auto">
 
     <!-- Confirm Dialog -->
-    <div id="confirmActionModal" class="fixed inset-0 bg-black bg-opacity-60 z-[70] hidden flex items-center justify-center p-4">
+    <div id="confirmActionModal" class="fixed inset-0 bg-black/60 z-[70] hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="confirmActionContent">
             <div class="p-8 text-center text-gray-800">
                 <div id="confirmActionIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
@@ -137,7 +137,7 @@
     </div>
 </div>
 
-<div id="modalPending" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
+<div id="modalPending" class="fixed inset-0 bg-black/50 z-40 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl overflow-hidden transform transition-all scale-95 opacity-0 modal-content">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
             <h3 class="text-lg font-bold text-yellow-600 flex items-center gap-2">
@@ -180,7 +180,7 @@
     </div>
 </div>
 
-<div id="modalReject" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+<div id="modalReject" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0 modal-content">
         <div class="px-6 py-4 border-b border-gray-100 font-bold text-red-600">Alasan Penolakan</div>
         <form id="rejectForm" method="POST" class="p-6">
@@ -194,7 +194,7 @@
     </div>
 </div>
 
-<div id="modalWithdraw" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden flex items-center justify-center p-4">
+<div id="modalWithdraw" class="fixed inset-0 bg-black/50 z-40 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-95 opacity-0 modal-content">
         
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
@@ -306,7 +306,7 @@
     @php
         $trxNew = \App\Models\Withdrawal::with('nasabah')->find(session('new_withdrawal'));
     @endphp
-    <div id="modalReceipt" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center p-4">
+    <div id="modalReceipt" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-lg shadow-2xl w-full max-w-sm overflow-hidden text-center relative">
             
             <div class="bg-gray-50 pt-8 pb-4 flex justify-center">

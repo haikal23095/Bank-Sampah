@@ -98,7 +98,7 @@
     </div>
 </div>
 
-<div id="modalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+<div id="modalOverlay" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-95 opacity-0" id="modalContent">
         
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -173,7 +173,7 @@
 </div>
 
 <!-- Modal Edit Nasabah -->
-<div id="editModalOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+<div id="editModalOverlay" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden transform transition-all scale-95 opacity-0" id="editModalContent">
         
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
@@ -249,7 +249,7 @@
 </div>
 
 <!-- Notification Modal -->
-<div id="notificationModal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4">
+<div id="notificationModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="notificationContent">
         <div class="p-8 text-center border-b border-gray-50">
             <div id="notificationIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
@@ -265,7 +265,7 @@
 </div>
 
 <!-- Confirm Delete Modal -->
-<div id="confirmDeleteModal" class="fixed inset-0 bg-black bg-opacity-60 z-[60] hidden flex items-center justify-center p-4">
+<div id="confirmDeleteModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="confirmDeleteContent">
         <div class="p-8 text-center">
             <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-100 text-red-600">
