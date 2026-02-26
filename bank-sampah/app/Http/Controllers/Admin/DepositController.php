@@ -42,34 +42,48 @@ class DepositController extends Controller
         try {
             DB::beginTransaction();
 
-            // A. Hitung Total
+            // A. Ambil data WasteType sekaligus untuk menghindari N+1 query
+            $wasteTypeIds = collect($request->items)->pluck('waste_type_id')->unique();
+            $wasteTypes = WasteType::whereIn('id', $wasteTypeIds)->get()->keyBy('id');
+
+            // B. Hitung Total & Siapkan Data Detail
             $totalWeight = 0;
             $totalAmount = 0;
+            $detailsData = [];
 
-            // B. Buat Header Transaksi (no type/status/totals stored)
+            // C. Buat Header Transaksi
             $transaction = Transaction::create([
                 'user_id' => $request->user_id,
                 'staff_id' => Auth::id(), // Petugas yang login
                 'date' => now()->toDateString(),
             ]);
 
-            // C. Loop Item Sampah
+            // D. Proses Item Sampah
             foreach ($request->items as $item) {
-                $wasteType = WasteType::find($item['waste_type_id']);
+                $wasteType = $wasteTypes->get($item['waste_type_id']);
+
+                if (!$wasteType)
+                    continue; // Antisipasi jika ID tidak ditemukan
+
                 $subtotal = $wasteType->price_per_kg * $item['weight'];
 
-                TransactionDetail::create([
+                $detailsData[] = [
                     'transaction_id' => $transaction->id,
                     'waste_type_id' => $wasteType->id,
                     'weight' => $item['weight'],
                     'subtotal' => $subtotal,
-                ]);
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
 
                 $totalWeight += $item['weight'];
                 $totalAmount += $subtotal;
             }
 
-            // D. Update Saldo Nasabah (Wallet)
+            // E. Simpan Detail secara Batch (Sangat Efisien untuk performa database)
+            TransactionDetail::insert($detailsData);
+
+            // F. Update Saldo Nasabah (Wallet)
             $wallet = Wallet::firstOrCreate(
                 ['user_id' => $request->user_id],
                 ['balance' => 0]
