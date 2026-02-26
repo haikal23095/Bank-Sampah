@@ -3,120 +3,103 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\WasteCategoryRequest;
+use App\Http\Requests\Admin\WasteTypeRequest;
 use App\Models\WasteCategory;
 use App\Models\WasteType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CatalogController extends Controller
 {
     public function index(Request $request)
     {
-        // Ambil kategori beserta itemnya dengan filter pencarian
-        $query = WasteCategory::with([
-            'wasteTypes' => function ($q) use ($request) {
-                if ($request->filled('search')) {
-                    $q->where('name', 'like', '%'.$request->search.'%');
-                }
-            },
-        ]);
+        $search = $request->input('search');
 
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%'.$search.'%')
-                    ->orWhereHas('wasteTypes', function ($sq) use ($search) {
-                        $sq->where('name', 'like', '%'.$search.'%');
-                    });
-            });
-        }
+        // Cache the default list for performance, search remains dynamic
+        $categories = $search
+            ? $this->getCatalogData($search)
+            : Cache::remember('catalog_data', 3600, fn () => $this->getCatalogData());
 
-        $categories = $query->orderBy('id')->get();
-
-        return view('admin.catalog.index', compact('categories'));
+        return view('admin.catalog.index', compact('categories', 'search'));
     }
 
-    // Simpan Jenis Sampah (Sesuai Modal di Gambar 2)
-    public function storeType(Request $request)
+    /**
+     * Get Catalog data with optimized queries.
+     */
+    private function getCatalogData(?string $search = null)
     {
-        $request->validate([
-            'category_id' => 'required|exists:waste_categories,id',
-            'name' => 'required|string|max:255',
-            'price_per_kg' => 'required|numeric|min:0',
-            'unit' => 'required|string|max:10', // Tambahan input satuan (kg/pcs/dll)
-        ]);
+        return WasteCategory::query()
+            ->select(['id', 'name', 'description'])
+            ->with([
+                'wasteTypes' => function ($q) use ($search) {
+                    $q->select(['id', 'category_id', 'name', 'price_per_kg', 'unit']);
+                    if ($search) {
+                        $q->where('name', 'like', "%{$search}%");
+                    }
+                },
+            ])
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($sq) use ($search) {
+                    $sq->where('name', 'like', "%{$search}%")
+                        ->orWhereHas('wasteTypes', fn ($twq) => $twq->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->orderBy('id')
+            ->get();
+    }
 
-        WasteType::create([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'price_per_kg' => $request->price_per_kg,
-            'unit' => $request->unit,
-        ]);
+    // Simpan Jenis Sampah
+    public function storeType(WasteTypeRequest $request)
+    {
+        WasteType::query()->create($request->validated());
+
+        Cache::forget('catalog_data');
 
         return back()->with('success', 'Jenis sampah berhasil ditambahkan!');
     }
 
     // Perbarui item jenis sampah
-    public function updateType(Request $request, $id)
+    public function updateType(WasteTypeRequest $request, $id)
     {
-        $request->validate([
-            'category_id' => 'required|exists:waste_categories,id',
-            'name' => 'required|string|max:255',
-            'price_per_kg' => 'required|numeric|min:0',
-            'unit' => 'required|string|max:10',
-        ]);
+        $type = WasteType::query()->findOrFail($id);
+        $type->update($request->validated());
 
-        $type = WasteType::findOrFail($id);
-        $type->update([
-            'category_id' => $request->category_id,
-            'name' => $request->name,
-            'price_per_kg' => $request->price_per_kg,
-            'unit' => $request->unit,
-        ]);
+        Cache::forget('catalog_data');
 
         return back()->with('success', 'Item berhasil diperbarui!');
     }
 
-    public function storeCategory(Request $request)
+    public function storeCategory(WasteCategoryRequest $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        WasteCategory::query()->create($request->validated());
 
-        WasteCategory::create([
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
+        Cache::forget('catalog_data');
 
         return back()->with('success', 'Kategori Sampah berhasil ditambahkan!');
     }
 
-    public function updateCategory(Request $request, $id)
+    public function updateCategory(WasteCategoryRequest $request, $id)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
-        ]);
+        $category = WasteCategory::query()->findOrFail($id);
+        $category->update($request->validated());
 
-        $category = WasteCategory::findOrFail($id);
-        $category->update([
-            'name' => $request->name,
-            'description' => $request->description,
-        ]);
+        Cache::forget('catalog_data');
 
         return back()->with('success', 'Kategori berhasil diperbarui!');
     }
 
     public function destroyCategory($id)
     {
-        $category = WasteCategory::findOrFail($id);
+        $category = WasteCategory::query()->findOrFail($id);
 
-        // Cek jika masih ada item di kategori ini
-        if ($category->wasteTypes()->count() > 0) {
+        // Lebih efisien menggunakan exists() daripada count()
+        if ($category->wasteTypes()->exists()) {
             return back()->with('error', 'Kategori tidak bisa dihapus karena masih memiliki jenis sampah di dalamnya.');
         }
 
         $category->delete();
+        Cache::forget('catalog_data');
 
         return back()->with('success', 'Kategori berhasil dihapus.');
     }
@@ -125,6 +108,7 @@ class CatalogController extends Controller
     public function destroyType($id)
     {
         WasteType::destroy($id);
+        Cache::forget('catalog_data');
 
         return back()->with('success', 'Item dihapus.');
     }

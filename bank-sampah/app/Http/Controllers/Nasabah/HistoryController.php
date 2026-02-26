@@ -19,8 +19,8 @@ class HistoryController extends Controller
         $userId = Auth::id();
 
         // Date filters
-        $startDate = $request->get('start_date');
-        $endDate = $request->get('end_date');
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
 
         // Ambil transaksi (setor)
         $txQuery = Transaction::where('user_id', $userId)->with('details.wasteType');
@@ -70,7 +70,7 @@ class HistoryController extends Controller
         // Gabungkan, urutkan berdasarkan tanggal, dan paginate manual
         $merged = $transRecords->concat($withdrawRecords)->sortByDesc('date')->values();
 
-        $page = (int) $request->get('page', 1);
+        $page = (int) $request->input('page', 1);
         $perPage = 10;
         $total = $merged->count();
 

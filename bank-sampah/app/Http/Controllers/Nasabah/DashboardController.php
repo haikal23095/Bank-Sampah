@@ -28,8 +28,8 @@ class DashboardController extends Controller
         // Hitung total transaksi
         $totalTransactions = $user->transactions()->count();
 
-        $weekOffset = request()->get('week', 0);
-        $yearOffset = request()->get('year', 0);
+        $weekOffset = request()->input('week', 0);
+        $yearOffset = request()->input('year', 0);
 
         $dailyData = $this->getDailyStatistics($user->id, $weekOffset);
         $monthlyData = $this->getMonthlyStatistics($user->id, $yearOffset);
@@ -80,8 +80,8 @@ class DashboardController extends Controller
                 $stat = $stats->get($date);
                 $carbonDate = Carbon::parse($date);
                 $data->push([
-                    'label' => $carbonDate->translatedFormat('D') . ' (' . $carbonDate->format('d/m') . ')',
-                    'amount' => (float) ($stat->total_amount ?? 0)
+                    'label' => $carbonDate->translatedFormat('D').' ('.$carbonDate->format('d/m').')',
+                    'amount' => (float) ($stat->total_amount ?? 0),
                 ]);
             }
 
@@ -93,7 +93,7 @@ class DashboardController extends Controller
         } else {
             // Tahunan: 12 bulan dalam 1 tahun
             $targetYear = Carbon::today()->year + $offset;
-            
+
             $stats = DB::table('transaction_details')
                 ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
                 ->where('transactions.user_id', $user->id)
@@ -112,7 +112,7 @@ class DashboardController extends Controller
                 $monthName = Carbon::create($targetYear, $month, 1)->translatedFormat('M');
                 $data->push([
                     'label' => $monthName,
-                    'amount' => (float) ($stat->total_amount ?? 0)
+                    'amount' => (float) ($stat->total_amount ?? 0),
                 ]);
             }
 
@@ -122,7 +122,7 @@ class DashboardController extends Controller
         return response()->json([
             'labels' => $data->pluck('label'),
             'amount' => $data->pluck('amount'),
-            'title' => $title
+            'title' => $title,
         ]);
     }
 
