@@ -64,11 +64,9 @@ class WithdrawalController extends Controller
                 return back()->with('error', 'Saldo nasabah tidak mencukupi! Saldo saat ini: Rp ' . number_format($wallet->balance ?? 0));
             }
 
-            $staffId = Auth::id() ?? 1; // Fallback untuk Stress Test
-
             // Prevent near-duplicate submissions (same staff, user, amount, method within 5 seconds)
             $recentDuplicate = Withdrawal::where('user_id', $user->id)
-                ->where('staff_id', $staffId)
+                ->where('staff_id', Auth::id())
                 ->where('amount', $request->amount)
                 ->where('method', $request->method)
                 ->where('created_at', '>=', now()->subSeconds(5))
@@ -91,7 +89,7 @@ class WithdrawalController extends Controller
             // 4. Catat Penarikan ke tabel withdrawals
             $withdrawal = Withdrawal::create([
                 'user_id' => $user->id,
-                'staff_id' => $staffId,
+                'staff_id' => Auth::id(),
                 'date' => now(),
                 'amount' => $request->amount,
                 'status' => 'SUCCESS',
