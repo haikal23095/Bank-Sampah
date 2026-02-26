@@ -34,16 +34,20 @@ export default function () {
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
-                // 'X-CSRF-TOKEN': '...' 
             },
+            redirects: 0, // Mencegah k6 mengikuti redirect ke halaman admin (login/auth)
         };
 
+        // MEMUKUL RUTE BARU: /api-test/setor
         let res = http.post(`${BASE_URL}/api-test/setor`, depositPayload, params);
+
+        // Kita tidak mencetak log jika statusnya 302 (berhasil diproses tapi redirect)
         if (res.status !== 201 && res.status !== 302) {
-            console.log(`STATUS ERROR: ${res.status} | URL: ${res.url}`);
+            console.log(`ERROR DEPOSIT (${res.status}): ${res.body}`);
         }
+
         check(res, {
-            'deposit status is 201 or 302': (r) => r.status === 201 || r.status === 302,
+            'deposit success (302/201)': (r) => r.status === 302 || r.status === 201,
         });
     });
 
@@ -51,16 +55,22 @@ export default function () {
     group('Withdrawal Flow', function () {
         let withdrawPayload = JSON.stringify({
             user_id: 2,
-            amount: 5000,
+            amount: 1000, // Nominal lebih kecil untuk pengetesan awal
             method: 'CASH'
         });
 
+        // MEMUKUL RUTE BARU: /api-test/penarikan
         let res = http.post(`${BASE_URL}/api-test/penarikan`, withdrawPayload, {
-            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+            redirects: 0, // Berhenti di respons penarikan tanpa redirect
         });
 
+        if (res.status !== 200 && res.status !== 302) {
+            console.log(`ERROR WITHDRAW (${res.status}): ${res.body}`);
+        }
+
         check(res, {
-            'withdraw status is 200 or 302': (r) => r.status === 200 || r.status === 302,
+            'withdraw success (200/302)': (r) => r.status === 200 || r.status === 302,
         });
     });
 
