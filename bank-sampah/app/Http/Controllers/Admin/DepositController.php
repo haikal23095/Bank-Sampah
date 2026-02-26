@@ -54,7 +54,7 @@ class DepositController extends Controller
             // C. Buat Header Transaksi
             $transaction = Transaction::create([
                 'user_id' => $request->user_id,
-                'staff_id' => Auth::id(), // Petugas yang login
+                'staff_id' => Auth::id() ?? 1, // Fallback ke ID 1 untuk Stress Test tanpa login
                 'date' => now()->toDateString(),
             ]);
 

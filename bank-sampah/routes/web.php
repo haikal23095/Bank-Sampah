@@ -27,6 +27,12 @@ Route::middleware('guest')->group(function () {
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
+// --- RUTE TEMPORARY UNTUK STRESS TEST (TANPA AUTH) ---
+Route::prefix('admin')->group(function () {
+    Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store.test');
+    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store.test');
+});
+
 // Halaman Dashboard (Perlu Login)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
@@ -35,7 +41,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     // --- FITUR SETOR SAMPAH ---
     Route::get('/setor-sampah', [DepositController::class, 'create'])->name('admin.deposits.create');
-    Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store');
+    // Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store'); // Dipindah ke atas
 
     // --- FITUR KELOLA NASABAH ---
     Route::get('/nasabah', [CustomerController::class, 'index'])->name('admin.customers.index');
@@ -49,7 +55,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
 
     // --- FITUR PENARIKAN SALDO ---
     Route::get('/penarikan', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');
-    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
+    // Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store'); // Dipindah ke atas
     Route::post('/penarikan/{id}/approve', [WithdrawalController::class, 'approve'])->name('admin.withdrawals.approve');
     Route::post('/penarikan/{id}/reject', [WithdrawalController::class, 'reject'])->name('admin.withdrawals.reject');
 

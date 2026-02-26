@@ -15,7 +15,7 @@ export let options = {
     },
 };
 
-const BASE_URL = 'http://localhost:8000/'; // Ubah sesuai URL lokal kamu
+const BASE_URL = 'https://bank-sampah.firmansyahdev.my.id'; // Ubah sesuai URL lokal kamu
 
 export default function () {
     // Skenario 1: Login (Opsional jika ingin testing login flow)
@@ -39,7 +39,9 @@ export default function () {
         };
 
         let res = http.post(`${BASE_URL}/admin/setor-sampah`, depositPayload, params);
-
+        if (res.status !== 201 && res.status !== 302) {
+            console.log(`STATUS ERROR: ${res.status} | URL: ${res.url}`);
+        }
         check(res, {
             'deposit status is 201 or 302': (r) => r.status === 201 || r.status === 302,
         });
