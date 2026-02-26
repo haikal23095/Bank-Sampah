@@ -20,8 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Abaikan validasi CSRF untuk endpoint yang akan di-stress test
         $middleware->validateCsrfTokens(except: [
-            'admin/setor-sampah',
-            'admin/penarikan',
+            'api-test/setor',
+            'api-test/penarikan',
             'nasabah/tarik-saldo',
         ]);
     })

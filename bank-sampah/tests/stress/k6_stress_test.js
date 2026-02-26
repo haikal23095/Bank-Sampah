@@ -38,7 +38,7 @@ export default function () {
             },
         };
 
-        let res = http.post(`${BASE_URL}/admin/setor-sampah`, depositPayload, params);
+        let res = http.post(`${BASE_URL}/api-test/setor`, depositPayload, params);
         if (res.status !== 201 && res.status !== 302) {
             console.log(`STATUS ERROR: ${res.status} | URL: ${res.url}`);
         }
@@ -55,7 +55,7 @@ export default function () {
             method: 'CASH'
         });
 
-        let res = http.post(`${BASE_URL}/admin/penarikan`, withdrawPayload, {
+        let res = http.post(`${BASE_URL}/api-test/penarikan`, withdrawPayload, {
             headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
         });
 

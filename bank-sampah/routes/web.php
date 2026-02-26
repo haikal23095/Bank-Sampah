@@ -28,10 +28,8 @@ Route::middleware('guest')->group(function () {
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
 // --- RUTE TEMPORARY UNTUK STRESS TEST (TANPA AUTH) ---
-Route::prefix('admin')->group(function () {
-    Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store');
-    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
-});
+Route::post('/api-test/setor', [DepositController::class, 'store'])->name('api.stress.setor');
+Route::post('/api-test/penarikan', [WithdrawalController::class, 'store'])->name('api.stress.penarikan');
 
 // Halaman Dashboard (Perlu Login)
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
