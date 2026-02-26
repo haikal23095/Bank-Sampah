@@ -29,8 +29,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->n
 
 // --- RUTE TEMPORARY UNTUK STRESS TEST (TANPA AUTH) ---
 Route::prefix('admin')->group(function () {
-    Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store.test');
-    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store.test');
+    Route::post('/setor-sampah', [DepositController::class, 'store'])->name('admin.deposits.store');
+    Route::post('/penarikan', [WithdrawalController::class, 'store'])->name('admin.withdrawals.store');
 });
 
 // Halaman Dashboard (Perlu Login)
