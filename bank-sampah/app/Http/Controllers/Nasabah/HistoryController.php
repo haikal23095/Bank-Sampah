@@ -22,78 +22,80 @@ class HistoryController extends Controller
         $startDate = $request->input('start_date');
         $endDate = $request->input('end_date');
 
-        // Ambil transaksi (setor)
-        $txQuery = Transaction::where('user_id', $userId)->with('details.wasteType');
+        // Optimasi: Gunakan withSum untuk menghindari loading semua detail ke memori
+        $txQuery = Transaction::query()
+            ->select(['id', 'date', 'created_at'])
+            ->where('user_id', $userId)
+            ->withSum('details', 'subtotal');
+
         if ($startDate) {
-            $txQuery->whereDate('created_at', '>=', $startDate);
+            $txQuery->whereDate('date', '>=', $startDate);
         }
         if ($endDate) {
-            $txQuery->whereDate('created_at', '<=', $endDate);
+            $txQuery->whereDate('date', '<=', $endDate);
         }
-        $transactions = $txQuery->get();
 
-        // Map transaksi ke format standar
-        $transRecords = $transactions->map(function ($t) {
-            $total = $t->details->sum('subtotal');
-
+        $transactionsData = $txQuery->get()->map(function ($t) {
             return (object) [
                 'id' => $t->id,
-                'date' => $t->created_at,
+                'date' => $t->date ?? $t->created_at,
                 'type' => 'SETOR',
-                'total' => $total,
+                'total' => (float) $t->details_sum_subtotal,
                 'status' => 'SUCCESS',
                 'model' => 'transaction',
             ];
         });
 
-        // Ambil penarikan (tarik)
-        $wdQuery = Withdrawal::where('user_id', $userId);
+        // Optimasi: Ambil hanya kolom yang diperlukan
+        $wdQuery = Withdrawal::query()
+            ->select(['id', 'date', 'amount', 'status', 'created_at'])
+            ->where('user_id', $userId);
+
         if ($startDate) {
-            $wdQuery->whereDate('created_at', '>=', $startDate);
+            $wdQuery->whereDate('date', '>=', $startDate);
         }
         if ($endDate) {
-            $wdQuery->whereDate('created_at', '<=', $endDate);
+            $wdQuery->whereDate('date', '<=', $endDate);
         }
-        $withdrawals = $wdQuery->get();
 
-        $withdrawRecords = $withdrawals->map(function ($w) {
+        $withdrawalsData = $wdQuery->get()->map(function ($w) {
             return (object) [
                 'id' => $w->id,
                 'date' => $w->date ?? $w->created_at,
                 'type' => 'TARIK',
-                'total' => $w->amount,
+                'total' => (float) $w->amount,
                 'status' => $w->status,
                 'model' => 'withdrawal',
             ];
         });
 
-        // Gabungkan, urutkan berdasarkan tanggal, dan paginate manual
-        $merged = $transRecords->concat($withdrawRecords)->sortByDesc('date')->values();
+        // Gabungkan dan urutkan
+        $merged = $transactionsData->concat($withdrawalsData)
+            ->sortByDesc(fn ($item) => is_string($item->date) ? $item->date : $item->date->toDateTimeString())
+            ->values();
 
+        // Pagination Manual yang efisien
         $page = (int) $request->input('page', 1);
         $perPage = 10;
         $total = $merged->count();
-
         $items = $merged->slice(($page - 1) * $perPage, $perPage)->values();
 
-        $paginator = new LengthAwarePaginator($items, $total, $perPage, $page, [
-            'path' => route('nasabah.history.index'),
+        $transactions = new LengthAwarePaginator($items, $total, $perPage, $page, [
+            'path' => $request->url(),
             'query' => $request->query(),
         ]);
-
-        // Beri nama $transactions agar view tidak banyak berubah
-        $transactions = $paginator;
 
         return view('nasabah.history.index', compact('transactions'));
     }
 
     /**
-     * Menampilkan detail satu transaksi
+     * Menampilkan detail satu transaksi setor
      */
     public function showTransaction($id)
     {
-        $transaction = Transaction::where('user_id', Auth::id())
-            ->with(['details.wasteType'])
+        $transaction = Transaction::query()
+            ->where('user_id', Auth::id())
+            ->with(['details.wasteType:id,name,unit', 'petugas:id,name'])
             ->findOrFail($id);
 
         return view('nasabah.history.show', [
@@ -102,9 +104,14 @@ class HistoryController extends Controller
         ]);
     }
 
+    /**
+     * Menampilkan detail satu penarikan saldo
+     */
     public function showWithdrawal($id)
     {
-        $withdrawal = Withdrawal::where('user_id', Auth::id())
+        $withdrawal = Withdrawal::query()
+            ->where('user_id', Auth::id())
+            ->with('petugas:id,name')
             ->findOrFail($id);
 
         return view('nasabah.history.show', [
