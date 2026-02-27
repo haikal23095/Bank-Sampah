@@ -8,8 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'user_id', 'staff_id', 'date', 'admin_note'
+        'user_id', 'staff_id', 'date', 'admin_note',
     ];
 
     protected $casts = [
@@ -22,6 +23,7 @@ class Transaction extends Model
         if ($this->relationLoaded('details')) {
             return (float) $this->details->sum('subtotal');
         }
+
         return (float) $this->details()->sum('subtotal');
     }
 
@@ -30,6 +32,7 @@ class Transaction extends Model
         if ($this->relationLoaded('details')) {
             return (float) $this->details->sum('weight');
         }
+
         return (float) $this->details()->sum('weight');
     }
 

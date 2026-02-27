@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class WasteCategory extends Model
 {
     use HasFactory;
+
     protected $fillable = ['name', 'description'];
 
     // Satu Kategori punya banyak Jenis Sampah

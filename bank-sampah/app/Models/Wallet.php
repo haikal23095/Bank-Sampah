@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class Wallet extends Model
 {
     use HasFactory;
+
     protected $fillable = ['user_id', 'balance', 'last_updated'];
 
     protected $casts = [
         'balance' => 'float',
-        'last_updated' => 'datetime'
+        'last_updated' => 'datetime',
     ];
 
     public function user()
