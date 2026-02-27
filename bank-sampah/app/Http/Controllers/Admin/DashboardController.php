@@ -4,39 +4,37 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Transaction;
+use App\Models\TransactionDetail;
 use App\Models\User;
 use App\Models\Wallet;
-use App\Models\TransactionDetail;
 use App\Models\Withdrawal;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         // Cache stats for 60 seconds to improve performance
-        $stats = Cache::remember('admin_dashboard_stats', 60, function () {
-            return [
-                'totalWeight' => TransactionDetail::sum('weight'),
-                'totalBalance' => Wallet::sum('balance'),
-                'totalWithdrawal' => Withdrawal::where('status', 'SUCCESS')->sum('amount'),
-                'activeNasabahCount' => User::where('role', 'NASABAH')->count(),
-            ];
-        });
+        $stats = Cache::remember('admin_dashboard_stats', 60, fn () => [
+            'totalWeight' => (float) TransactionDetail::query()->sum('weight'),
+            'totalBalance' => (float) Wallet::query()->sum('balance'),
+            'totalWithdrawal' => (float) Withdrawal::query()->where('status', 'SUCCESS')->sum('amount'),
+            'activeNasabahCount' => User::query()->where('role', 'NASABAH')->count(),
+        ]);
 
         // Aktivitas Terakhir (include details for quick derived totals)
-        // We rarely cache this to keep it real-time enough
-        $latestActivities = Transaction::with(['nasabah', 'details'])
-            ->orderBy('created_at', 'desc')
-            ->take(5)
+        // Optimized with specific columns and latest()
+        $latestActivities = Transaction::query()
+            ->with(['nasabah:id,name', 'details:id,transaction_id,weight,subtotal'])
+            ->latest()
+            ->limit(5)
             ->get();
 
         return view('admin.dashboard', array_merge($stats, [
-            'latestActivities' => $latestActivities
+            'latestActivities' => $latestActivities,
         ]));
     }
 
@@ -47,8 +45,8 @@ class DashboardController extends Controller
 
         // Cache chart data for 5 minutes
         $cacheKey = "admin_dashboard_chart_{$type}_{$offset}";
-        
-        return Cache::remember($cacheKey, 300, function () use ($type, $offset) {
+
+        $chartData = Cache::remember($cacheKey, 300, function () use ($type, $offset) {
             $data = collect();
             $title = '';
 
@@ -70,20 +68,19 @@ class DashboardController extends Controller
                     ->keyBy('date');
 
                 for ($i = 0; $i < 7; $i++) {
-                    $date = $startDate->copy()->addDays($i)->format('Y-m-d');
-                    $stat = $stats->get($date);
-                    $carbonDate = Carbon::parse($date);
+                    $dateObj = $startDate->copy()->addDays($i);
+                    $dateString = $dateObj->format('Y-m-d');
+                    $stat = $stats->get($dateString);
                     $data->push([
-                        'label' => $carbonDate->translatedFormat('D') . ' (' . $carbonDate->format('d/m') . ')',
+                        'label' => $dateObj->translatedFormat('D').' ('.$dateObj->format('d/m').')',
                         'weight' => (float) ($stat->total_weight ?? 0),
-                        'amount' => (float) ($stat->total_amount ?? 0)
+                        'amount' => (float) ($stat->total_amount ?? 0),
                     ]);
                 }
 
                 $startMonth = $startDate->translatedFormat('F Y');
                 $endMonth = $endDate->translatedFormat('F Y');
                 $title = ($startMonth === $endMonth) ? $startMonth : "$startMonth - $endMonth";
-
             } else {
                 $targetMonth = Carbon::today()->addMonths($offset);
                 $startDate = $targetMonth->copy()->startOfMonth();
@@ -103,24 +100,27 @@ class DashboardController extends Controller
 
                 $daysInMonth = $startDate->daysInMonth;
                 for ($i = 0; $i < $daysInMonth; $i++) {
-                    $date = $startDate->copy()->addDays($i)->format('Y-m-d');
-                    $stat = $stats->get($date);
+                    $dateObj = $startDate->copy()->addDays($i);
+                    $dateString = $dateObj->format('Y-m-d');
+                    $stat = $stats->get($dateString);
                     $data->push([
-                        'label' => Carbon::parse($date)->format('d'),
+                        'label' => $dateObj->format('d'),
                         'weight' => (float) ($stat->total_weight ?? 0),
-                        'amount' => (float) ($stat->total_amount ?? 0)
+                        'amount' => (float) ($stat->total_amount ?? 0),
                     ]);
                 }
 
                 $title = $targetMonth->translatedFormat('F Y');
             }
 
-            return response()->json([
+            return [
                 'labels' => $data->pluck('label'),
                 'weight' => $data->pluck('weight'),
                 'amount' => $data->pluck('amount'),
-                'title' => $title
-            ]);
+                'title' => $title,
+            ];
         });
+
+        return response()->json($chartData);
     }
 }
