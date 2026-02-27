@@ -94,7 +94,7 @@
 
                     <div id="transferWarning" class="hidden mb-4 p-3 bg-red-50 border border-red-100 text-red-700 rounded">Lengkapi info bank Anda di kolom kiri sebelum menarik via transfer.</div>
 
-                    <button type="submit" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl shadow-md text-lg font-semibold">Ajukan Penarikan Sekarang</button>
+                    <button type="button" onclick="confirmWithdraw()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-3 rounded-xl shadow-md text-lg font-semibold transition-all active:scale-95">Ajukan Penarikan Sekarang</button>
                 </form>
             </div>
 
@@ -138,6 +138,27 @@
             <button onclick="closeNotification()" id="notificationButton" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95">
                 Mengerti
             </button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmModal" class="fixed inset-0 bg-black/60 z-60 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="confirmContentModal">
+        <div class="p-8 text-center">
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-yellow-100 text-yellow-600">
+                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+            </div>
+            <h3 class="text-2xl font-bold text-gray-900 mb-2">Konfirmasi</h3>
+            <p class="text-gray-500 mb-8 px-4 leading-relaxed">Apakah Anda yakin ingin mengajukan penarikan saldo sebesar <span id="confirmAmountText" class="font-bold text-emerald-600"></span>?</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm()" class="flex-1 py-3.5 rounded-xl font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all active:scale-95">
+                    Batal
+                </button>
+                <button onclick="submitWithdraw()" class="flex-1 py-3.5 rounded-xl font-bold text-white bg-emerald-500 hover:bg-emerald-600 shadow-lg shadow-emerald-200 transition-all active:scale-95">
+                    Ya, Ajukan
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -301,5 +322,45 @@
         showNotification('success', 'Berhasil', "{{ session('success') }}");
     @endif
 
+    // Confirmation Logic
+    const confirmModal = document.getElementById('confirmModal');
+    const confirmContentModal = document.getElementById('confirmContentModal');
+    const confirmAmountText = document.getElementById('confirmAmountText');
+    const withdrawForm = document.getElementById('withdrawForm');
+
+    // Intercept form submission (e.g. via Enter key)
+    withdrawForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        confirmWithdraw();
+    });
+
+    function confirmWithdraw() {
+        const amount = amountInput.value;
+        const numericAmount = parseRupiah(amount);
+        
+        if (numericAmount < 10000) {
+            showNotification('error', 'Gagal', 'Jumlah penarikan minimal Rp. 10.000');
+            return;
+        }
+
+        confirmAmountText.textContent = 'Rp ' + amount;
+        confirmModal.classList.remove('hidden');
+        setTimeout(() => {
+            confirmContentModal.classList.remove('scale-95', 'opacity-0');
+            confirmContentModal.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function closeConfirm() {
+        confirmContentModal.classList.remove('scale-100', 'opacity-100');
+        confirmContentModal.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            confirmModal.classList.add('hidden');
+        }, 300);
+    }
+
+    function submitWithdraw() {
+        withdrawForm.submit();
+    }
 </script>
 @endsection
