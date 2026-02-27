@@ -3,126 +3,143 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\WithdrawalRequest;
 use App\Models\User;
-use App\Models\Withdrawal;
 use App\Models\Wallet;
-use Illuminate\Support\Facades\DB;
+use App\Models\Withdrawal;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class WithdrawalController extends Controller
 {
+    /**
+     * Display a listing of withdrawals.
+     */
     public function index(Request $request)
     {
-        $query = Withdrawal::with('nasabah')
-            ->whereIn('status', ['SUCCESS', 'FAILED']);
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
 
-        // Filter Tanggal
-        if ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
-        }
+        // Optimized main query with specific columns
+        $withdrawals = Withdrawal::query()
+            ->with(['nasabah:id,name'])
+            ->whereIn('status', ['SUCCESS', 'FAILED'])
+            ->when($startDate, fn ($q) => $q->whereDate('created_at', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->whereDate('created_at', '<=', $endDate))
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
 
-        $withdrawals = $query->latest()->paginate(10)->withQueryString();
-
-        // Ambil penarikan yang masih PENDING
-        $pendingWithdrawals = Withdrawal::with('nasabah')
+        // Pending withdrawals - limited columns
+        $pendingWithdrawals = Withdrawal::query()
+            ->with(['nasabah:id,name'])
             ->where('status', 'PENDING')
             ->latest()
-            ->get();
+            ->get(['id', 'user_id', 'amount', 'method', 'created_at']);
 
-        // Ambil list nasabah untuk dropdown di modal manual
-        $nasabahs = User::where('role', 'nasabah')->orderBy('name')->get();
+        // Nasabah list for dropdown - only needed columns
+        $nasabahs = User::query()
+            ->where('role', 'NASABAH')
+            ->orderBy('name')
+            ->get(['id', 'name']);
 
         return view('admin.withdrawals.index', compact('withdrawals', 'nasabahs', 'pendingWithdrawals'));
     }
 
-    public function store(Request $request)
+    public function store(WithdrawalRequest $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'amount' => 'required|numeric|min:1000',
-            'method' => 'required|in:CASH,TRANSFER',
-            // bank/account may be absent when method is CASH — allow null but require when method=TRANSFER
-            'bank_name' => 'nullable|required_if:method,TRANSFER|string|max:255',
-            'account_number' => 'nullable|required_if:method,TRANSFER|string|max:50',
-        ]);
-
-        $user = User::find($request->user_id);
+        $userId = $request->user_id;
+        $amount = (float) $request->amount;
+        $method = $request->method;
 
         try {
             DB::beginTransaction();
 
-            // lock wallet row to prevent race conditions from concurrent submissions
-            $wallet = \App\Models\Wallet::where('user_id', $user->id)->lockForUpdate()->first();
+            // Lock wallet to prevent race conditions
+            $wallet = Wallet::query()
+                ->where('user_id', $userId)
+                ->lockForUpdate()
+                ->first();
 
-            // 1. Cek Saldo (inside transaction after row lock)
-            if (!$wallet || $wallet->balance < $request->amount) {
+            if (! $wallet || $wallet->balance < $amount) {
                 DB::rollBack();
-                return back()->with('error', 'Saldo nasabah tidak mencukupi! Saldo saat ini: Rp ' . number_format($wallet->balance ?? 0));
+
+                return back()->with('error', 'Saldo nasabah tidak mencukupi! Saldo saat ini: Rp '.number_format($wallet->balance ?? 0));
             }
 
-            // Prevent near-duplicate submissions (same staff, user, amount, method within 5 seconds)
-            $recentDuplicate = Withdrawal::where('user_id', $user->id)
+            // Prevent rapid double submissions
+            $recentDuplicate = Withdrawal::query()
+                ->where('user_id', $userId)
                 ->where('staff_id', Auth::id())
-                ->where('amount', $request->amount)
-                ->where('method', $request->method)
+                ->where('amount', $amount)
+                ->where('method', $method)
                 ->where('created_at', '>=', now()->subSeconds(5))
                 ->exists();
 
             if ($recentDuplicate) {
                 DB::rollBack();
-                return back()->with('error', 'Permintaan duplikat terdeteksi — tunggu beberapa detik sebelum mencoba lagi.');
+
+                return back()->with('error', 'Permintaan duplikat terdeteksi — tunggu sejenak sebelum mencoba lagi.');
             }
 
-            // 2. Kurangi Saldo
-            $wallet->decrement('balance', $request->amount);
+            // Update Balance
+            $wallet->decrement('balance', $amount);
 
-            // 3. Catat Note (Simpan Info Bank jika Transfer)
-            $note = null;
-            if ($request->method === 'TRANSFER') {
-                $note = "Bank: " . $request->bank_name . " | Rek: " . $request->account_number;
-            }
+            // Create Note
+            $note = $method === 'TRANSFER'
+                ? "Bank: {$request->bank_name} | Rek: {$request->account_number}"
+                : null;
 
-            // 4. Catat Penarikan ke tabel withdrawals
+            // Log Withdrawal
             $withdrawal = Withdrawal::create([
-                'user_id' => $user->id,
+                'user_id' => $userId,
                 'staff_id' => Auth::id(),
                 'date' => now(),
-                'amount' => $request->amount,
+                'amount' => $amount,
                 'status' => 'SUCCESS',
-                'method' => $request->method,
-                'admin_note' => $note
+                'method' => $method,
+                'admin_note' => $note,
             ]);
 
             DB::commit();
 
-            // 5. Redirect Balik dengan Data Penarikan Baru (untuk memicu Modal Nota)
-            return back()->with(['new_withdrawal' => $withdrawal->id, 'success' => 'Penarikan berhasil tercatat.']);
+            return back()->with([
+                'new_withdrawal' => $withdrawal->id,
+                'success' => 'Penarikan berhasil tercatat.',
+            ]);
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+
+            return back()->with('error', 'Terjadi kesalahan: '.$e->getMessage());
         }
     }
 
     public function approve($id)
     {
-        $withdrawal = Withdrawal::findOrFail($id);
-
-        if ($withdrawal->status !== 'PENDING') {
-            return back()->with('error', 'Permintaan ini sudah diproses.');
-        }
-
         try {
             DB::beginTransaction();
 
-            $wallet = Wallet::where('user_id', $withdrawal->user_id)->lockForUpdate()->first();
+            $withdrawal = Withdrawal::query()
+                ->where('id', $id)
+                ->lockForUpdate()
+                ->firstOrFail();
 
-            if (!$wallet || $wallet->balance < $withdrawal->amount) {
+            if ($withdrawal->status !== 'PENDING') {
                 DB::rollBack();
+
+                return back()->with('error', 'Permintaan ini sudah diproses.');
+            }
+
+            $wallet = Wallet::query()
+                ->where('user_id', $withdrawal->user_id)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $wallet || $wallet->balance < $withdrawal->amount) {
+                DB::rollBack();
+
                 return back()->with('error', 'Saldo nasabah tidak mencukupi untuk menyetujui penarikan ini.');
             }
 
@@ -135,11 +152,16 @@ class WithdrawalController extends Controller
             ]);
 
             DB::commit();
-            return back()->with(['new_withdrawal' => $withdrawal->id, 'success' => 'Permintaan penarikan berhasil disetujui.']);
+
+            return back()->with([
+                'new_withdrawal' => $withdrawal->id,
+                'success' => 'Permintaan penarikan berhasil disetujui.',
+            ]);
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Gagal memproses persetujuan: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal memproses persetujuan: '.$e->getMessage());
         }
     }
 

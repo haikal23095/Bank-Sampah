@@ -148,8 +148,8 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white">
-                        <option value="nasabah" {{ old('role', 'nasabah') === 'nasabah' ? 'selected' : '' }}>Nasabah</option>
-                        <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="NASABAH" {{ old('role', 'NASABAH') === 'NASABAH' ? 'selected' : '' }}>Nasabah</option>
+                        <option value="ADMIN" {{ old('role') === 'ADMIN' ? 'selected' : '' }}>Admin</option>
                     </select>
                     @if($errors->has('role'))
                         <p class="mt-1 text-sm text-red-600">{{ $errors->first('role') }}</p>
@@ -224,8 +224,9 @@
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Role</label>
                     <select name="role" id="edit_role" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none bg-white">
-                        <option value="nasabah">Nasabah</option>
-                        <option value="admin">Admin</option>
+                        <option value="NASABAH">Nasabah</option>
+                        <option value="PETUGAS">Petugas</option>
+                        <option value="ADMIN">Admin</option>
                     </select>
                     @if($errors->has('role'))
                         <p class="mt-1 text-sm text-red-600">{{ $errors->first('role') }}</p>
@@ -313,7 +314,7 @@
         document.getElementById('edit_name').value = customer.name;
         document.getElementById('edit_email').value = customer.email;
         document.getElementById('edit_phone').value = customer.phone;
-        document.getElementById('edit_role').value = customer.role;
+        document.getElementById('edit_role').value = (customer.role || '').toUpperCase();
         document.getElementById('edit_address').value = customer.address || '';
 
         // Show modal
