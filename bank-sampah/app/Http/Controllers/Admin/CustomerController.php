@@ -3,111 +3,58 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\Admin\UserRequest;
 use App\Models\User;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::whereIn('role', ['nasabah', 'admin']);
+        $search = $request->input('search');
 
-        // Fitur Search
-        if ($request->has('search')) {
-            $searchTerm = $request->search;
-            $query->where(function ($q) use ($searchTerm) {
-                $q->where('name', 'like', "%{$searchTerm}%")
-                    ->orWhere('email', 'like', "%{$searchTerm}%")
-                    ->orWhere('phone', 'like', "%{$searchTerm}%");
-            });
-        }
+        $customers = User::query()
+            ->select(['id', 'name', 'email', 'phone', 'role', 'address', 'join_date'])
+            ->whereIn('role', ['NASABAH', 'ADMIN', 'PETUGAS'])
+            ->when($search, function ($query) use ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%")
+                        ->orWhere('phone', 'like', "%{$search}%");
+                });
+            })
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
 
-        $customers = $query->latest()->get();
-        return view('admin.customers.index', compact('customers'));
+        return view('admin.customers.index', compact('customers', 'search'));
     }
 
-    public function store(Request $request)
+    public function store(UserRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'email', 'unique:users,email', 'regex:/^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,7}$/'],
-            'password' => 'required|min:6',
-            'phone' => 'required|numeric|digits_between:10,12',
-            'role' => 'required|in:admin,nasabah', // Validasi role
-            'address' => 'nullable|string',
-        ], [
-            'name.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'email.email' => 'Format email tidak valid.',
-            'email.regex' => 'Format email tidak valid (harus mengandung domain yang benar, contoh: .com).',
-            'password.required' => 'Password wajib diisi.',
-            'password.min' => 'Password minimal :min karakter.',
-            'phone.required' => 'No. Telepon wajib diisi.',
-            'phone.numeric' => 'No. Telepon harus berupa angka.',
-            'phone.digits_between' => 'No. Telepon harus antara 10 sampai 12 digit.',
-        ]);
+        DB::transaction(function () use ($request) {
+            User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+                'phone' => $request->phone,
+                'role' => strtoupper($request->role),
+                'address' => $request->address,
+                'join_date' => now(),
+            ]);
+        });
 
-        if ($validator->fails()) {
-            return redirect()->route('admin.customers.index')
-                ->withErrors($validator)
-                ->withInput()
-                ->with('open_create_modal', true);
-        }
-
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'phone' => $request->phone,
-            'role' => strtoupper($request->role),
-            'address' => $request->address,
-            'join_date' => now(),
-        ]);
-
-        return redirect()->route('admin.customers.index')->with('success', 'Nasabah berhasil ditambahkan!');
+        return redirect()->route('admin.customers.index')->with('success', 'User berhasil ditambahkan!');
     }
 
-    public function update(Request $request, $id)
+    public function update(UserRequest $request, $id)
     {
         $user = User::findOrFail($id);
 
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => ['required', 'email', 'unique:users,email,' . $id, 'regex:/^[\w\.-]+@[\w\.-]+\.[a-zA-Z]{2,7}$/'],
-            'password' => 'nullable|min:6',
-            'phone' => 'required|numeric|digits_between:10,12',
-            'role' => 'required|in:admin,nasabah',
-            'address' => 'nullable|string',
-        ], [
-            'name.required' => 'Nama wajib diisi.',
-            'email.required' => 'Email wajib diisi.',
-            'email.unique' => 'Email ini sudah terdaftar.',
-            'email.email' => 'Format email tidak valid.',
-            'email.regex' => 'Format email tidak valid (harus mengandung domain yang benar, contoh: .com).',
-            'password.min' => 'Password minimal :min karakter.',
-            'phone.required' => 'No. Telepon wajib diisi.',
-            'phone.numeric' => 'No. Telepon harus berupa angka.',
-            'phone.digits_between' => 'No. Telepon harus antara 10 sampai 12 digit.',
-        ]);
-
-        if ($validator->fails()) {
-            return redirect()->route('admin.customers.index')
-                ->withErrors($validator)
-                ->withInput()
-                ->with('open_edit_modal', true)
-                ->with('open_edit_id', $id);
-        }
-
-        $data = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'phone' => $request->phone,
-            'role' => strtoupper($request->role),
-            'address' => $request->address,
-        ];
+        $data = $request->safe()->except(['password', 'role']);
+        $data['role'] = strtoupper($request->role);
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
@@ -115,12 +62,13 @@ class CustomerController extends Controller
 
         $user->update($data);
 
-        return redirect()->route('admin.customers.index')->with('success', 'Informasi nasabah berhasil diperbarui!');
+        return redirect()->route('admin.customers.index')->with('success', 'Informasi user berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         User::destroy($id);
-        return redirect()->back()->with('success', 'Data nasabah dihapus.');
+
+        return back()->with('success', 'Data user berhasil dihapus.');
     }
 }
