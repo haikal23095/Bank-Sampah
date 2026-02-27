@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -16,135 +17,148 @@ class DashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
+        $userId = $user->id;
 
-        // Memuat relasi wallet secara eager
-        $user->load('wallet');
+        // Eager load wallet balance specifically
+        $user->load(['wallet:id,user_id,balance']);
 
-        // Hitung total berat yang pernah disetor (sum subtotal di transaction_details)
-        $totalWeight = $user->transactions()
-            ->join('transaction_details', 'transactions.id', '=', 'transaction_details.transaction_id')
-            ->sum('transaction_details.weight');
+        // Use cache for expensive stats
+        $cacheKey = "nasabah_dashboard_stats_{$userId}";
+        $stats = Cache::remember($cacheKey, 60, function () use ($userId) {
+            return [
+                'totalWeight' => (float) DB::table('transaction_details')
+                    ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+                    ->where('transactions.user_id', $userId)
+                    ->sum('transaction_details.weight'),
+                'totalTransactions' => Transaction::where('user_id', $userId)->count(),
+            ];
+        });
 
-        // Hitung total transaksi
-        $totalTransactions = $user->transactions()->count();
+        $weekOffset = (int) request()->input('week', 0);
+        $yearOffset = (int) request()->input('year', 0);
 
-        $weekOffset = request()->input('week', 0);
-        $yearOffset = request()->input('year', 0);
+        // Optimized statistics fetching (no N+1)
+        $dailyData = $this->getDailyStatistics($userId, $weekOffset);
+        $monthlyData = $this->getMonthlyStatistics($userId, $yearOffset);
 
-        $dailyData = $this->getDailyStatistics($user->id, $weekOffset);
-        $monthlyData = $this->getMonthlyStatistics($user->id, $yearOffset);
+        // Latest Activities optimized
+        $latestActivities = $this->getLatestActivities($userId);
 
-        // Aktivitas Terakhir (Transactions + Withdrawals)
-        $latestActivities = $this->getLatestActivities($user->id);
-
-        return view('nasabah.dashboard', compact(
-            'user',
-            'totalWeight',
-            'totalTransactions',
-            'dailyData',
-            'monthlyData',
-            'weekOffset',
-            'yearOffset',
-            'latestActivities'
-        ));
+        return view('nasabah.dashboard', array_merge($stats, [
+            'user' => $user,
+            'dailyData' => $dailyData,
+            'monthlyData' => $monthlyData,
+            'weekOffset' => $weekOffset,
+            'yearOffset' => $yearOffset,
+            'latestActivities' => $latestActivities,
+        ]));
     }
 
     public function getChartData(Request $request)
     {
-        $user = Auth::user();
+        $userId = Auth::id();
         $type = $request->query('type', 'daily');
         $offset = (int) $request->query('offset', 0);
 
-        $data = collect();
-        $title = '';
+        $cacheKey = "nasabah_chart_{$userId}_{$type}_{$offset}";
 
-        if ($type === 'daily') {
-            // Window 7 hari, bergerak berdasarkan offset * 7 hari
-            $endDate = Carbon::today()->addDays($offset * 7);
-            $startDate = $endDate->copy()->subDays(6);
+        return Cache::remember($cacheKey, 300, function () use ($userId, $type, $offset) {
+            $data = collect();
+            $title = '';
 
-            $stats = DB::table('transaction_details')
-                ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
-                ->where('transactions.user_id', $user->id)
-                ->whereBetween('transactions.date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                ->select(
-                    DB::raw('DATE(transactions.date) as date'),
-                    DB::raw('SUM(subtotal) as total_amount')
-                )
-                ->groupBy('date')
-                ->get()
-                ->keyBy('date');
+            if ($type === 'daily') {
+                $endDate = Carbon::today()->addDays($offset * 7);
+                $startDate = $endDate->copy()->subDays(6);
 
-            for ($i = 0; $i < 7; $i++) {
-                $date = $startDate->copy()->addDays($i)->format('Y-m-d');
-                $stat = $stats->get($date);
-                $carbonDate = Carbon::parse($date);
-                $data->push([
-                    'label' => $carbonDate->translatedFormat('D').' ('.$carbonDate->format('d/m').')',
-                    'amount' => (float) ($stat->total_amount ?? 0),
-                ]);
+                $stats = DB::table('transaction_details')
+                    ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+                    ->where('transactions.user_id', $userId)
+                    ->whereBetween('transactions.date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+                    ->select(
+                        DB::raw('DATE(transactions.date) as date'),
+                        DB::raw('SUM(subtotal) as total_amount')
+                    )
+                    ->groupBy('date')
+                    ->get()
+                    ->keyBy('date');
+
+                for ($i = 0; $i < 7; $i++) {
+                    $dateObj = $startDate->copy()->addDays($i);
+                    $dateString = $dateObj->format('Y-m-d');
+                    $stat = $stats->get($dateString);
+                    $data->push([
+                        'label' => $dateObj->translatedFormat('D').' ('.$dateObj->format('d/m').')',
+                        'amount' => (float) ($stat->total_amount ?? 0),
+                    ]);
+                }
+
+                $startMonth = $startDate->translatedFormat('F Y');
+                $endMonth = $endDate->translatedFormat('F Y');
+                $title = ($startMonth === $endMonth) ? $startMonth : "$startMonth - $endMonth";
+
+            } else {
+                $targetYear = Carbon::today()->year + $offset;
+
+                $stats = DB::table('transaction_details')
+                    ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+                    ->where('transactions.user_id', $userId)
+                    ->whereYear('transactions.date', $targetYear)
+                    ->select(
+                        DB::raw('MONTH(transactions.date) as month'),
+                        DB::raw('SUM(subtotal) as total_amount')
+                    )
+                    ->groupBy('month')
+                    ->get()
+                    ->keyBy('month');
+
+                for ($month = 1; $month <= 12; $month++) {
+                    $stat = $stats->get($month);
+                    $monthName = Carbon::create($targetYear, $month, 1)->translatedFormat('M');
+                    $data->push([
+                        'label' => $monthName,
+                        'amount' => (float) ($stat->total_amount ?? 0),
+                    ]);
+                }
+
+                $title = "Tahun $targetYear";
             }
 
-            // Title: Nama Bulan
-            $startMonth = $startDate->translatedFormat('F Y');
-            $endMonth = $endDate->translatedFormat('F Y');
-            $title = ($startMonth === $endMonth) ? $startMonth : "$startMonth - $endMonth";
-
-        } else {
-            // Tahunan: 12 bulan dalam 1 tahun
-            $targetYear = Carbon::today()->year + $offset;
-
-            $stats = DB::table('transaction_details')
-                ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
-                ->where('transactions.user_id', $user->id)
-                ->whereYear('transactions.date', $targetYear)
-                ->select(
-                    DB::raw('MONTH(transactions.date) as month'),
-                    DB::raw('SUM(subtotal) as total_amount')
-                )
-                ->groupBy('month')
-                ->get()
-                ->keyBy('month');
-
-            // 12 bulan
-            for ($month = 1; $month <= 12; $month++) {
-                $stat = $stats->get($month);
-                $monthName = Carbon::create($targetYear, $month, 1)->translatedFormat('M');
-                $data->push([
-                    'label' => $monthName,
-                    'amount' => (float) ($stat->total_amount ?? 0),
-                ]);
-            }
-
-            $title = "Tahun $targetYear";
-        }
-
-        return response()->json([
-            'labels' => $data->pluck('label'),
-            'amount' => $data->pluck('amount'),
-            'title' => $title,
-        ]);
+            return response()->json([
+                'labels' => $data->pluck('label'),
+                'amount' => $data->pluck('amount'),
+                'title' => $title,
+            ]);
+        });
     }
 
     private function getDailyStatistics(int $userId, int $weekOffset = 0): Collection
     {
         $startOfWeek = Carbon::today()->startOfWeek()->subWeeks($weekOffset);
-        $statistics = collect();
+        $endOfWeek = $startOfWeek->copy()->addDays(6);
 
+        // Fetch all data for the week in one query
+        $stats = DB::table('transaction_details')
+            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->where('transactions.user_id', $userId)
+            ->whereBetween('transactions.date', [$startOfWeek->format('Y-m-d'), $endOfWeek->format('Y-m-d')])
+            ->select(
+                DB::raw('DATE(transactions.date) as date'),
+                DB::raw('SUM(subtotal) as total_amount')
+            )
+            ->groupBy('date')
+            ->get()
+            ->keyBy('date');
+
+        $statistics = collect();
         for ($i = 0; $i < 7; $i++) {
             $date = $startOfWeek->copy()->addDays($i);
-
-            $subtotal = Transaction::where('user_id', $userId)
-                ->whereDate('date', $date)
-                ->with('details')
-                ->get()
-                ->flatMap(fn ($t) => $t->details)
-                ->sum('subtotal');
+            $dateString = $date->format('Y-m-d');
+            $stat = $stats->get($dateString);
 
             $statistics->push([
                 'date_label' => $date->format('Y/m/d'),
-                'date' => $date->format('Y-m-d'),
-                'amount' => $subtotal,
+                'date' => $dateString,
+                'amount' => (float) ($stat->total_amount ?? 0),
             ]);
         }
 
@@ -155,23 +169,28 @@ class DashboardController extends Controller
     {
         $year = Carbon::today()->year - $yearOffset;
 
+        // Fetch all data for the year in one query
+        $stats = DB::table('transaction_details')
+            ->join('transactions', 'transactions.id', '=', 'transaction_details.transaction_id')
+            ->where('transactions.user_id', $userId)
+            ->whereYear('transactions.date', $year)
+            ->select(
+                DB::raw('MONTH(transactions.date) as month'),
+                DB::raw('SUM(subtotal) as total_amount')
+            )
+            ->groupBy('month')
+            ->get()
+            ->keyBy('month');
+
         $statistics = collect();
-
         for ($month = 1; $month <= 12; $month++) {
-            $startDate = Carbon::create($year, $month, 1)->startOfMonth();
-            $endDate = Carbon::create($year, $month, 1)->endOfMonth();
-
-            $subtotal = Transaction::where('user_id', $userId)
-                ->whereBetween('date', [$startDate, $endDate])
-                ->with('details')
-                ->get()
-                ->flatMap(fn ($t) => $t->details)
-                ->sum('subtotal');
+            $monthObj = Carbon::create($year, $month, 1);
+            $stat = $stats->get($month);
 
             $statistics->push([
-                'month' => $startDate->translatedFormat('M'),
+                'month' => $monthObj->translatedFormat('M'),
                 'year' => $year,
-                'amount' => $subtotal,
+                'amount' => (float) ($stat->total_amount ?? 0),
             ]);
         }
 
@@ -180,32 +199,32 @@ class DashboardController extends Controller
 
     private function getLatestActivities(int $userId): Collection
     {
-        // Ambil transactions DEPOSIT
-        $transactions = Transaction::where('user_id', $userId)
-            ->with('details')
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get()
-            ->map(fn ($transaction) => [
+        // Optimized: fetching fewer records and using specific columns
+        $transactions = Transaction::query()
+            ->where('user_id', $userId)
+            ->withSum('details', 'subtotal')
+            ->latest()
+            ->limit(5)
+            ->get(['id', 'user_id', 'created_at'])
+            ->map(fn ($t) => [
                 'title' => 'Menyetor sampah',
-                'amount' => $transaction->details->sum('subtotal'),
-                'created_at' => $transaction->created_at,
+                'amount' => (float) $t->details_sum_subtotal,
+                'created_at' => $t->created_at,
                 'status' => '',
             ]);
 
-        // Ambil withdrawals
-        $withdrawals = Withdrawal::where('user_id', $userId)
-            ->orderBy('created_at', 'desc')
-            ->take(10)
-            ->get()
-            ->map(fn ($withdrawal) => [
+        $withdrawals = Withdrawal::query()
+            ->where('user_id', $userId)
+            ->latest()
+            ->limit(5)
+            ->get(['id', 'user_id', 'amount', 'status', 'created_at'])
+            ->map(fn ($w) => [
                 'title' => 'Menarik saldo',
-                'amount' => $withdrawal->amount,
-                'created_at' => $withdrawal->created_at,
-                'status' => $withdrawal->status,
+                'amount' => (float) $w->amount,
+                'created_at' => $w->created_at,
+                'status' => $w->status,
             ]);
 
-        // Gabung dan sort by created_at descending
         return $transactions->merge($withdrawals)
             ->sortByDesc('created_at')
             ->take(5)
