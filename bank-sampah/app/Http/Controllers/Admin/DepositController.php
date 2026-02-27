@@ -3,87 +3,111 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\WasteType;
+use App\Http\Requests\Admin\DepositRequest;
 use App\Models\Transaction;
 use App\Models\TransactionDetail;
+use App\Models\User;
 use App\Models\Wallet;
-use Illuminate\Support\Facades\DB;
+use App\Models\WasteType;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class DepositController extends Controller
 {
-    // 1. Tampilkan Form Setor Sampah
+    /**
+     * Show form for waste deposit.
+     */
     public function create()
     {
-        // Ambil data Nasabah saja dengan saldo wallet-nya
-        $nasabahs = User::where('role', 'nasabah')
-            ->with('wallet')
+        // Optimized: only nasabah with specific columns and wallet balance
+        $nasabahs = User::query()
+            ->select(['id', 'name'])
+            ->where('role', 'NASABAH')
+            ->with(['wallet:id,user_id,balance'])
             ->orderBy('name')
             ->get();
 
-        // Ambil Jenis Sampah untuk dropdown
-        $wasteTypes = WasteType::all();
+        // Optimized: select only necessary columns for the dropdown
+        $wasteTypes = WasteType::query()
+            ->select(['id', 'name', 'price_per_kg', 'unit'])
+            ->orderBy('name')
+            ->get();
 
         return view('admin.deposits.create', compact('nasabahs', 'wasteTypes'));
     }
 
-    // 2. Proses Simpan Transaksi
-    public function store(Request $request)
+    /**
+     * Process waste deposit transaction.
+     */
+    public function store(DepositRequest $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'items' => 'required|array|min:1',
-            'items.*.waste_type_id' => 'required|exists:waste_types,id',
-            'items.*.weight' => 'required|numeric|min:0.1',
-        ]);
+        $userId = $request->user_id;
+        $items = $request->items;
 
         try {
             DB::beginTransaction();
 
-            // A. Hitung Total
-            $totalWeight = 0;
-            $totalAmount = 0;
+            // Load all necessary waste types in one query to avoid N+1 inside loop
+            $wasteTypeIds = collect($items)->pluck('waste_type_id')->unique();
+            $wasteTypes = WasteType::query()
+                ->whereIn('id', $wasteTypeIds)
+                ->get()
+                ->keyBy('id');
 
-            // B. Buat Header Transaksi (no type/status/totals stored)
-            $transaction = Transaction::create([
-                'user_id' => $request->user_id,
-                'staff_id' => Auth::id(), // Petugas yang login
+            // 1. Create Transaction Header
+            $transaction = Transaction::query()->create([
+                'user_id' => $userId,
+                'staff_id' => Auth::id(),
                 'date' => now()->toDateString(),
             ]);
 
-            // C. Loop Item Sampah
-            foreach ($request->items as $item) {
-                $wasteType = WasteType::find($item['waste_type_id']);
-                $subtotal = $wasteType->price_per_kg * $item['weight'];
+            $totalAmount = 0;
+            $detailsData = [];
 
-                TransactionDetail::create([
+            // 2. Map and prepare details for bulk insert or sequential (sequential for detail model events if any)
+            foreach ($items as $item) {
+                $wasteType = $wasteTypes->get($item['waste_type_id']);
+
+                if (! $wasteType) {
+                    continue;
+                }
+
+                $subtotal = $wasteType->price_per_kg * $item['weight'];
+                $totalAmount += $subtotal;
+
+                $detailsData[] = [
                     'transaction_id' => $transaction->id,
                     'waste_type_id' => $wasteType->id,
                     'weight' => $item['weight'],
                     'subtotal' => $subtotal,
-                ]);
-
-                $totalWeight += $item['weight'];
-                $totalAmount += $subtotal;
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
             }
 
-            // D. Update Saldo Nasabah (Wallet)
-            $wallet = Wallet::firstOrCreate(
-                ['user_id' => $request->user_id],
+            // 3. Bulk Insert details for better performance
+            TransactionDetail::query()->insert($detailsData);
+
+            // 4. Update or Create Wallet with DB Lock
+            $wallet = Wallet::query()->firstOrCreate(
+                ['user_id' => $userId],
                 ['balance' => 0]
             );
+
+            // Use lockForUpdate if it was already created, but for increment it's generally safe
+            // if handled within transaction. For max safety:
+            $wallet = Wallet::query()->where('user_id', $userId)->lockForUpdate()->first();
             $wallet->increment('balance', $totalAmount);
 
             DB::commit();
 
             return redirect()->route('admin.deposits.create')
-                ->with('success', 'Transaksi berhasil! Saldo nasabah bertambah Rp ' . number_format($totalAmount));
+                ->with('success', 'Setoran berhasil! Saldo nasabah bertambah Rp '.number_format($totalAmount, 0, ',', '.'));
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+
+            return back()->with('error', 'Gagal memproses setoran: '.$e->getMessage())->withInput();
         }
     }
 }
