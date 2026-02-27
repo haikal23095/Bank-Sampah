@@ -8,32 +8,45 @@ use Illuminate\Http\Request;
 
 class HistoryController extends Controller
 {
-    // 1. Menampilkan Daftar Riwayat
+    /**
+     * Display a listing of transaction history.
+     */
     public function index(Request $request)
     {
-        // Ambil transaksi terbaru, sertakan data nasabah dan details agar tidak query berulang
-        $query = Transaction::with(['nasabah', 'details']);
+        $startDate = $request->input('start_date');
+        $endDate = $request->input('end_date');
 
-        // Filter Tanggal
-        if ($request->filled('start_date')) {
-            $query->whereDate('created_at', '>=', $request->start_date);
-        }
-        if ($request->filled('end_date')) {
-            $query->whereDate('created_at', '<=', $request->end_date);
-        }
-
-        $transactions = $query->latest()
-            ->paginate(10)
-            ->withQueryString(); // 10 data per halaman
+        // Optimized query with specific columns and scoped relations
+        $transactions = Transaction::query()
+            ->with([
+                'nasabah:id,name',
+                'details:id,transaction_id,weight,subtotal',
+            ])
+            ->when($startDate, fn ($q) => $q->whereDate('date', '>=', $startDate))
+            ->when($endDate, fn ($q) => $q->whereDate('date', '<=', $endDate))
+            ->latest('date')
+            ->latest('id')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('admin.history.index', compact('transactions'));
     }
 
-    // 2. Menampilkan Detail Satu Transaksi
+    /**
+     * Display the specified transaction details.
+     */
     public function show($id)
     {
-        // Ambil transaksi beserta detail item sampahnya dan petugas yang melayani
-        $transaction = Transaction::with(['details.wasteType', 'nasabah', 'petugas'])
+        // Optimized: select only necessary nested relation columns
+        $transaction = Transaction::query()
+            ->with([
+                'nasabah:id,name,email,phone,address',
+                'petugas:id,name',
+                'details' => function ($q) {
+                    $q->select(['id', 'transaction_id', 'waste_type_id', 'weight', 'subtotal'])
+                        ->with('wasteType:id,name,unit');
+                },
+            ])
             ->findOrFail($id);
 
         return view('admin.history.show', compact('transaction'));
