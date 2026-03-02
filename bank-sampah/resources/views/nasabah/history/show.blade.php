@@ -17,89 +17,56 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
 
         @if(isset($model) && $model === 'withdrawal')
-            {{-- HEADER --}}
-            <div class="bg-gray-50 px-8 py-6 border-b border-gray-100">
-                <div>
-                    <h2 class="text-lg font-bold text-gray-800">
-                        Penarikan #{{ $record->id }}
-                    </h2>
-                    <p class="text-sm text-gray-500">
-                        {{ optional($record->date ?? $record->created_at)->format('d F Y, H:i') }} WIB
-                    </p>
-
-                    <div class="mt-2">
-                        @php
-                            $statusColor = match($record->status) {
-                                'PENDING' => 'bg-yellow-100 text-yellow-700',
-                                'FAILED' => 'bg-red-100 text-red-700',
-                                'SUCCESS' => 'bg-green-100 text-green-700',
-                                default => 'bg-gray-100 text-gray-700',
-                            };
-                        @endphp
-
-                        <span class="px-3 py-1 text-xs font-bold rounded-full {{ $statusColor }}">
-                            {{ $record->status }}
-                        </span>
-                    </div>
+            {{-- HEADER: Modern Receipt Style --}}
+            <div class="px-8 pt-10 pb-8 text-center border-b border-dashed border-gray-200">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
                 </div>
+                <h2 class="text-3xl font-black text-gray-900 leading-tight">Rp {{ number_format($record->amount, 0, ',', '.') }}</h2>
+                @php
+                    $statusTheme = match($record->status) {
+                        'SUCCESS' => 'text-emerald-500',
+                        'FAILED'  => 'text-red-500',
+                        'PENDING' => 'text-amber-500',
+                        default   => 'text-blue-500',
+                    };
+                @endphp
+                <p class="text-sm font-bold {{ $statusTheme }} uppercase tracking-[0.2em] mt-1">Status {{ $record->status }}</p>
+                <p class="text-xs text-gray-400 mt-4">{{ $record->created_at->format('d F Y • H:i') }} WIB</p>
             </div>
 
-            {{-- DETAIL --}}
-            <div class="px-8 py-6">
-                <h3 class="text-sm font-bold text-gray-700 mb-4 uppercase tracking-wider">
-                    Detail Penarikan
-                </h3>
-
-                <div class="grid grid-cols-2 gap-y-4 text-sm text-gray-700">
-                    <div>
-                        <p class="text-gray-500">Metode</p>
-                        <p class="font-medium text-gray-800">{{ $record->method }}</p>
+            {{-- DETAIL CONTENT --}}
+            <div class="px-8 py-10">
+                <div class="space-y-6">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-50 pb-4">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">ID Penarikan</span>
+                        <span class="text-sm font-black text-gray-800">#WDN-{{ str_pad($record->id, 6, '0', STR_PAD_LEFT) }}</span>
                     </div>
 
-                    <div>
-                        <p class="text-gray-500">Diproses Oleh</p>
-                        <p class="font-medium text-gray-800">
-                            {{ $record->staff_id ? 'Staff #' . $record->staff_id : 'Belum diproses' }}
-                        </p>
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-gray-50 pb-4">
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Metode Penarikan</span>
+                        <div class="flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+                            <span class="text-sm font-black text-gray-800">{{ $record->method }}</span>
+                        </div>
                     </div>
 
-                    <div>
-                        <p class="text-gray-500">Tanggal Pengajuan</p>
-                        <p class="font-medium text-gray-800">
-                            {{ optional($record->date ?? $record->created_at)->format('d F Y, H:i') }}
-                        </p>
-                    </div>
+                    
 
-                    <div>
-                        <p class="text-gray-500">Dibuat Pada</p>
-                        <p class="font-medium text-gray-800">
-                            {{ $record->created_at->format('d F Y, H:i') }}
-                        </p>
-                    </div>
-
-                    <div class="col-span-2">
-                        <p class="text-gray-500">Catatan Admin</p>
-                        <p class="font-medium text-gray-800">
-                            {{ $record->admin_note ?? '-' }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            {{-- SUMMARY --}}
-            <div class="bg-gray-50 px-8 py-6 border-t border-gray-100 flex justify-between items-center">
-                <div>
-                    <p class="text-sm text-gray-500 mb-1">Total Penarikan</p>
-                    <p class="text-3xl font-bold text-blue-600">
-                        Rp {{ number_format($record->amount, 0, ',', '.') }}
-                    </p>
+                    {{-- Dynamic Status Box --}}
+                    @if($record->status === 'FAILED')
+                        <div class="mt-8 p-5 bg-red-50 rounded-2xl border border-red-100">
+                            <div class="flex items-center gap-3 mb-2 text-red-600">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span class="text-xs font-black uppercase tracking-widest">Alasan Penolakan</span>
+                            </div>
+                            <p class="text-sm font-medium text-red-800 leading-relaxed italic">"{{ $record->admin_note ?? 'Saldo tidak mencukupi atau data tidak valid' }}"</p>
+                        </div>
+                    @endif
                 </div>
 
-                <div class="text-right text-sm text-gray-600">
-                    <p>Status: 
-                        <span class="font-semibold">{{ $record->status }}</span>
-                    </p>
-                </div>
             </div>
 
 
