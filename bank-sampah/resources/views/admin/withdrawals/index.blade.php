@@ -155,6 +155,11 @@
                             <div>
                                 <p class="text-sm font-bold text-gray-900">{{ $pending->nasabah->name }}</p>
                                 <p class="text-xs text-gray-500">{{ $pending->created_at->format('d M Y, H:i') }} • {{ $pending->method }}</p>
+                                @if($pending->method === 'TRANSFER')
+                                    <p class="text-[10px] text-blue-500 font-bold uppercase mt-1">
+                                        {{ $pending->nasabah->bank_name ?? 'BANK TIDAK SET' }} - {{ $pending->nasabah->account_number ?? '-' }}
+                                    </p>
+                                @endif
                                 <p class="text-lg font-black text-blue-600 mt-1">Rp {{ number_format($pending->amount, 0, ',', '.') }}</p>
                             </div>
                             <div class="flex gap-2">

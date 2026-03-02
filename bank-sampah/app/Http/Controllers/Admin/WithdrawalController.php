@@ -23,7 +23,7 @@ class WithdrawalController extends Controller
 
         // Optimized main query with specific columns
         $withdrawals = Withdrawal::query()
-            ->with(['nasabah:id,name'])
+            ->with(['nasabah:id,name,bank_name,account_number'])
             ->whereIn('status', ['SUCCESS', 'FAILED'])
             ->when($startDate, fn ($q) => $q->whereDate('created_at', '>=', $startDate))
             ->when($endDate, fn ($q) => $q->whereDate('created_at', '<=', $endDate))
@@ -33,16 +33,17 @@ class WithdrawalController extends Controller
 
         // Pending withdrawals - limited columns
         $pendingWithdrawals = Withdrawal::query()
-            ->with(['nasabah:id,name'])
+            ->with(['nasabah:id,name,bank_name,account_number'])
             ->where('status', 'PENDING')
             ->latest()
             ->get(['id', 'user_id', 'amount', 'method', 'created_at']);
 
         // Nasabah list for dropdown - only needed columns
         $nasabahs = User::query()
+            ->with('wallet:user_id,balance')
             ->where('role', 'NASABAH')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'email', 'bank_name', 'account_number']);
 
         return view('admin.withdrawals.index', compact('withdrawals', 'nasabahs', 'pendingWithdrawals'));
     }
