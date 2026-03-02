@@ -29,16 +29,16 @@ class HistoryController extends Controller
             ->withSum('details', 'subtotal');
 
         if ($startDate) {
-            $txQuery->whereDate('date', '>=', $startDate);
+            $txQuery->whereDate('created_at', '>=', $startDate);
         }
         if ($endDate) {
-            $txQuery->whereDate('date', '<=', $endDate);
+            $txQuery->whereDate('created_at', '<=', $endDate);
         }
 
         $transactionsData = $txQuery->get()->map(function ($t) {
             return (object) [
                 'id' => $t->id,
-                'date' => $t->date ?? $t->created_at,
+                'date' => $t->created_at,
                 'type' => 'SETOR',
                 'total' => (float) $t->details_sum_subtotal,
                 'status' => 'SUCCESS',
@@ -52,16 +52,16 @@ class HistoryController extends Controller
             ->where('user_id', $userId);
 
         if ($startDate) {
-            $wdQuery->whereDate('date', '>=', $startDate);
+            $wdQuery->whereDate('created_at', '>=', $startDate);
         }
         if ($endDate) {
-            $wdQuery->whereDate('date', '<=', $endDate);
+            $wdQuery->whereDate('created_at', '<=', $endDate);
         }
 
         $withdrawalsData = $wdQuery->get()->map(function ($w) {
             return (object) [
                 'id' => $w->id,
-                'date' => $w->date ?? $w->created_at,
+                'date' => $w->created_at,
                 'type' => 'TARIK',
                 'total' => (float) $w->amount,
                 'status' => $w->status,
