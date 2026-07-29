@@ -7,8 +7,8 @@
     <!-- Header Section -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8 animate-in fade-in slide-in-from-top duration-500">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Halo, {{ Auth::user()->name }} 👋</h1>
-            <p class="text-gray-500 text-sm mt-2">Selamat datang di dashboard Bank Sampah Anda. Lihat ringkasan tabungan dan aktivitas sampahmu di sini.</p>
+            <h1 class="text-3xl font-bold text-slate-100">Halo, {{ Auth::user()->name }} 👋</h1>
+            <p class="text-slate-400 text-sm mt-2">Selamat datang di dashboard Bank Sampah Anda. Lihat ringkasan tabungan dan aktivitas sampahmu di sini.</p>
         </div>
     </div>
 

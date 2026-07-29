@@ -5,8 +5,8 @@
 @section('content')
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-            <h1 class="text-2xl font-bold text-gray-800">Halo, {{ Auth::user()->name }} 👋</h1>
-            <p class="text-gray-500 mt-1">Selamat datang di dashboard Bank Sampah Migunani GPM BYPASS RW 04.</p>
+            <h1 class="text-2xl font-bold text-slate-100">Halo, {{ Auth::user()->name }} 👋</h1>
+            <p class="text-slate-400 mt-1">Selamat datang di dashboard Bank Sampah Migunani GPM BYPASS RW 04.</p>
         </div>
     </div>
 
