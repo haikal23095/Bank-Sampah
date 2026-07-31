@@ -46,6 +46,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
     // --- FITUR RIWAYAT TRANSAKSI ---
     Route::get('/riwayat', [HistoryController::class, 'index'])->name('admin.history.index');
     Route::get('/riwayat/{id}', [HistoryController::class, 'show'])->name('admin.history.show');
+    Route::get('/riwayat/{id}/json', [HistoryController::class, 'showJson'])->name('admin.history.json');
+    Route::get('/riwayat/{id}/print', [HistoryController::class, 'print'])->name('admin.history.print');
 
     // --- FITUR PENARIKAN SALDO ---
     Route::get('/penarikan', [WithdrawalController::class, 'index'])->name('admin.withdrawals.index');

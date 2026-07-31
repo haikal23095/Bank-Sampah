@@ -51,4 +51,42 @@ class HistoryController extends Controller
 
         return view('admin.history.show', compact('transaction'));
     }
+
+    /**
+     * Get transaction details as JSON.
+     */
+    public function showJson($id)
+    {
+        $transaction = Transaction::query()
+            ->with([
+                'nasabah:id,name,email,phone,address',
+                'petugas:id,name',
+                'details' => function ($q) {
+                    $q->select(['id', 'transaction_id', 'waste_type_id', 'weight', 'subtotal'])
+                        ->with('wasteType:id,name,unit');
+                },
+            ])
+            ->findOrFail($id);
+
+        return response()->json($transaction);
+    }
+
+    /**
+     * Render the print view for a transaction receipt.
+     */
+    public function print($id)
+    {
+        $transaction = Transaction::query()
+            ->with([
+                'nasabah:id,name,email,phone,address',
+                'petugas:id,name',
+                'details' => function ($q) {
+                    $q->select(['id', 'transaction_id', 'waste_type_id', 'weight', 'subtotal'])
+                        ->with('wasteType:id,name,unit');
+                },
+            ])
+            ->findOrFail($id);
+
+        return view('admin.history.print', compact('transaction'));
+    }
 }

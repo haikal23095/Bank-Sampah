@@ -42,7 +42,7 @@
             <div class="mb-6 relative" id="nasabah-search-container">
                 <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Nasabah</label>
                 <div class="relative">
-                    <input type="text" id="nasabah-search-input" placeholder="Ketik nama atau email nasabah..." autocomplete="off" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10">
+                    <input type="text" id="nasabah-search-input" placeholder="Ketik nama atau email nasabah..." autocomplete="off" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pr-10">
                     <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-gray-400">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                     </div>
@@ -73,13 +73,13 @@
                 <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-end bg-gray-50 p-3 rounded-lg border border-gray-100 relative">
                     <div class="col-span-1 md:col-span-5 relative waste-search-container">
                         <label class="text-xs text-gray-500 mb-1 block">Jenis Sampah</label>
-                        <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" required>
+                        <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 focus:ring-green-500 focus:border-green-500" required>
                         <input type="hidden" name="items[0][waste_type_id]" class="waste-type-id" required data-price="0">
                         <div class="waste-results hidden absolute z-40 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto"></div>
                     </div>
                     <div class="col-span-1 md:col-span-3">
                         <label class="text-xs text-gray-500 mb-1 block">Berat (kg/liter/pcs)</label>
-                        <input type="number" step="0.1" name="items[0][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
+                        <input type="number" step="0.1" name="items[0][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-900 focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
                     </div>
                     <div class="col-span-1 md:col-span-3">
                         <label class="text-xs text-gray-500 mb-1 block">Subtotal</label>
@@ -113,15 +113,78 @@
 <!-- Notification Modal -->
 <div id="notificationModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform transition-all scale-95 opacity-0" id="notificationContentModal">
-        <div class="p-8 text-center border-b border-gray-50">
+        <div class="p-8 text-center">
             <div id="notificationIcon" class="mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6">
                 <!-- Icon via JS -->
             </div>
             <h3 id="notificationTitle" class="text-2xl font-bold text-gray-900 mb-2"></h3>
             <p id="notificationMessage" class="text-gray-500 mb-8 px-4 leading-relaxed"></p>
-            <button onclick="closeNotification()" id="notificationButton" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95">
-                Mengerti
-            </button>
+            <div class="flex flex-col gap-2" id="notificationButtonContainer">
+                <button type="button" onclick="closeNotification()" id="notificationButton" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Receipt Preview Modal (Premium Dark styling outer, clean paper inner) -->
+<div id="receiptModal" class="fixed inset-0 bg-black/85 z-[70] hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-95 opacity-0" id="receiptContentModal">
+        <div class="p-6">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+                <h3 class="text-lg font-bold text-white">Preview Nota Transaksi</h3>
+                <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-white transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Receipt Printable Section Mockup (Traditional receipt look) -->
+            <div class="my-6 p-5 bg-white text-slate-900 rounded-2xl max-h-96 overflow-y-auto font-mono text-sm leading-relaxed" id="receiptPaper">
+                <div class="text-center mb-4">
+                    <h4 class="font-bold text-base text-slate-950">BANK SAMPAH MIGUNANI</h4>
+                    <p class="text-xs text-slate-500">GPM BYPASS RW 04</p>
+                </div>
+                <div class="border-t border-dashed border-slate-300 my-2"></div>
+                <div class="space-y-1 text-xs">
+                    <div class="flex justify-between"><span>No. Nota:</span><span id="receiptId" class="font-bold">#0</span></div>
+                    <div class="flex justify-between"><span>Tanggal:</span><span id="receiptDate">-</span></div>
+                    <div class="flex justify-between"><span>Nasabah:</span><span id="receiptNasabah" class="font-bold">-</span></div>
+                    <div class="flex justify-between"><span>Petugas:</span><span id="receiptPetugas">-</span></div>
+                </div>
+                <div class="border-t border-dashed border-slate-300 my-2"></div>
+                <table class="w-full text-left text-xs">
+                    <thead>
+                        <tr class="border-b border-dashed border-slate-300">
+                            <th class="pb-1 text-slate-850">Jenis</th>
+                            <th class="pb-1 text-center text-slate-850">Berat</th>
+                            <th class="pb-1 text-right text-slate-850">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody id="receiptItems">
+                        <!-- Items injected here -->
+                    </tbody>
+                </table>
+                <div class="border-t border-dashed border-slate-300 my-2"></div>
+                <div class="space-y-1 font-bold text-xs">
+                    <div class="flex justify-between"><span>Total Berat:</span><span id="receiptTotalWeight">0.00 kg</span></div>
+                    <div class="flex justify-between text-sm text-emerald-700"><span>Total Saldo:</span><span id="receiptTotalAmount">Rp 0</span></div>
+                </div>
+                <div class="border-t border-dashed border-slate-300 my-2"></div>
+                <div class="text-center text-[10px] text-slate-400 mt-3 font-sans">
+                    Terima kasih telah menabung sampah dan menjaga lingkungan tetap bersih!
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="closeReceiptModal()" class="w-full py-3 rounded-xl font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 transition active:scale-95">
+                    Tutup
+                </button>
+                <a id="printReceiptBtn" href="#" target="_blank" class="w-full py-3 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 to-yellow-500 hover:from-emerald-500 hover:to-yellow-400 shadow-lg shadow-emerald-950/20 text-center flex items-center justify-center gap-1.5 transition active:scale-95">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Cetak
+                </a>
+            </div>
         </div>
     </div>
 </div>
@@ -135,18 +198,40 @@
     const notificationMessage = document.getElementById('notificationMessage');
     const notificationButton = document.getElementById('notificationButton');
 
-    function showNotification(type, title, message) {
+    function showNotification(type, title, message, transactionId = null) {
         notificationTitle.textContent = title;
         notificationMessage.textContent = message;
+
+        const buttonContainer = document.getElementById('notificationButtonContainer');
 
         if (type === 'success') {
             notificationIcon.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-green-100 text-green-600";
             notificationIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-            notificationButton.className = "w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 bg-emerald-500 hover:bg-emerald-600 shadow-emerald-200";
+            
+            if (transactionId) {
+                buttonContainer.innerHTML = `
+                    <button type="button" onclick="openReceiptModal(${transactionId})" class="w-full py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-emerald-600 to-yellow-500 hover:from-emerald-500 hover:to-yellow-400 shadow-lg shadow-emerald-950/20 transition-all active:scale-95">
+                        Lihat Nota
+                    </button>
+                    <button type="button" onclick="closeNotification()" class="w-full py-2.5 rounded-xl font-bold text-slate-400 hover:text-slate-500 transition-all active:scale-[0.98]">
+                        Tutup
+                    </button>
+                `;
+            } else {
+                buttonContainer.innerHTML = `
+                    <button type="button" onclick="closeNotification()" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 bg-emerald-500 hover:bg-emerald-600 shadow-emerald-250">
+                        Mengerti
+                    </button>
+                `;
+            }
         } else {
             notificationIcon.className = "mx-auto flex items-center justify-center h-20 w-20 rounded-full mb-6 bg-red-100 text-red-600";
             notificationIcon.innerHTML = `<svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>`;
-            notificationButton.className = "w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 bg-red-500 hover:bg-red-600 shadow-red-200";
+            buttonContainer.innerHTML = `
+                <button type="button" onclick="closeNotification()" class="w-full py-3.5 rounded-xl font-bold text-white shadow-lg transition-all active:scale-95 bg-red-500 hover:bg-red-600 shadow-red-200">
+                    Mengerti
+                </button>
+            `;
         }
 
         notificationModal.classList.remove('hidden');
@@ -164,9 +249,108 @@
         }, 300);
     }
 
+    // Receipt Modal Logic
+    const receiptModal = document.getElementById('receiptModal');
+    const receiptContentModal = document.getElementById('receiptContentModal');
+
+    function openReceiptModal(id) {
+        // Close notification modal first
+        closeNotification();
+        
+        // Open receipt modal
+        receiptModal.classList.remove('hidden');
+        receiptModal.classList.add('flex');
+        
+        // Reset modal view
+        document.getElementById('receiptId').textContent = 'Loading...';
+        document.getElementById('receiptDate').textContent = 'Loading...';
+        document.getElementById('receiptNasabah').textContent = 'Loading...';
+        document.getElementById('receiptPetugas').textContent = 'Loading...';
+        document.getElementById('receiptItems').innerHTML = '<tr><td colspan="3" class="text-center py-4 text-slate-400 font-sans">Memuat data nota...</td></tr>';
+        document.getElementById('receiptTotalWeight').textContent = '0.00 kg';
+        document.getElementById('receiptTotalAmount').textContent = 'Rp 0';
+        
+        // Fetch JSON data
+        fetch(`/admin/riwayat/${id}/json`)
+            .then(response => {
+                if (!response.ok) throw new Error('Gagal memuat nota');
+                return response.json();
+            })
+            .then(transaction => {
+                document.getElementById('receiptId').textContent = '#' + transaction.id;
+                
+                // Format Date: YYYY-MM-DD to DD-MM-YYYY
+                const dateParts = transaction.date.split('-');
+                const formattedDate = dateParts.length === 3 ? `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` : transaction.date;
+                document.getElementById('receiptDate').textContent = formattedDate;
+                
+                document.getElementById('receiptNasabah').textContent = transaction.nasabah ? transaction.nasabah.name : '-';
+                document.getElementById('receiptPetugas').textContent = transaction.petugas ? transaction.petugas.name : '-';
+                
+                // Populate items
+                let itemsHtml = '';
+                let totalWeight = 0;
+                let totalAmount = 0;
+                
+                transaction.details.forEach(detail => {
+                    const price = detail.waste_type ? detail.waste_type.price_per_kg : 0;
+                    const name = detail.waste_type ? detail.waste_type.name : 'Sampah';
+                    const unit = detail.waste_type ? (detail.waste_type.unit || 'kg') : 'kg';
+                    const formattedPrice = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(price);
+                    const formattedSubtotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(detail.subtotal);
+                    
+                    totalWeight += parseFloat(detail.weight);
+                    totalAmount += parseFloat(detail.subtotal);
+                    
+                    itemsHtml += `
+                        <tr class="border-b border-dotted border-slate-200 last:border-b-0">
+                            <td class="py-2 text-slate-800">
+                                <div class="font-bold">${name}</div>
+                                <div class="text-[10px] text-slate-500">@ ${formattedPrice}/${unit}</div>
+                            </td>
+                            <td class="py-2 text-center text-slate-700">${detail.weight} ${unit}</td>
+                            <td class="py-2 text-right text-slate-800 font-bold">${formattedSubtotal}</td>
+                        </tr>
+                    `;
+                });
+                
+                document.getElementById('receiptItems').innerHTML = itemsHtml;
+                document.getElementById('receiptTotalWeight').textContent = totalWeight.toFixed(2) + ' kg';
+                
+                const formattedTotal = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(totalAmount);
+                document.getElementById('receiptTotalAmount').textContent = formattedTotal;
+                
+                // Set print button href
+                document.getElementById('printReceiptBtn').href = `/admin/riwayat/${id}/print`;
+                
+                setTimeout(() => {
+                    receiptContentModal.classList.remove('scale-95', 'opacity-0');
+                    receiptContentModal.classList.add('scale-100', 'opacity-100');
+                }, 10);
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById('receiptItems').innerHTML = `<tr><td colspan="3" class="text-center py-4 text-rose-500 font-bold font-sans">${error.message}</td></tr>`;
+            });
+    }
+
+    function closeReceiptModal() {
+        receiptContentModal.classList.remove('scale-100', 'opacity-100');
+        receiptContentModal.classList.add('scale-95', 'opacity-0');
+        setTimeout(() => {
+            receiptModal.classList.add('hidden');
+            receiptModal.classList.remove('flex');
+        }, 300);
+    }
+
+    // Close receipt modal on click outside
+    document.getElementById('receiptModal').addEventListener('click', (e) => {
+        if (e.target.id === 'receiptModal') closeReceiptModal();
+    });
+
     // Auto-trigger based on session
     @if(session('success'))
-        showNotification('success', 'Berhasil!', "{{ session('success') }}");
+        showNotification('success', 'Berhasil!', "{{ session('success') }}", "{{ session('transaction_id') }}");
     @endif
     @if(session('error'))
         showNotification('error', 'Gagal!', "{{ session('error') }}");
@@ -186,13 +370,13 @@
             <div class="item-row grid grid-cols-1 md:grid-cols-12 gap-x-4 gap-y-2 items-end bg-gray-50 p-4 rounded-xl border border-gray-100 mt-4 relative" id="row-${index}">
                 <div class="col-span-1 md:col-span-5 relative waste-search-container">
                     <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Jenis Sampah</label>
-                    <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" required>
+                    <input type="text" placeholder="Cari jenis sampah..." autocomplete="off" class="waste-search-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:ring-green-500 focus:border-green-500" required>
                     <input type="hidden" name="items[${index}][waste_type_id]" class="waste-type-id" required data-price="0">
                     <div class="waste-results hidden absolute z-40 w-full mt-1 bg-white border border-gray-200 rounded shadow-lg max-h-40 overflow-y-auto"></div>
                 </div>
                 <div class="col-span-1 md:col-span-3">
                     <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Berat</label>
-                    <input type="number" step="0.1" name="items[${index}][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
+                    <input type="number" step="0.1" name="items[${index}][weight]" oninput="calculateRow(this)" class="weight-input w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:ring-green-500 focus:border-green-500" placeholder="0.0" required>
                 </div>
                 <div class="col-span-1 md:col-span-3">
                     <label class="text-[10px] font-bold text-gray-400 uppercase mb-1 block">Subtotal</label>

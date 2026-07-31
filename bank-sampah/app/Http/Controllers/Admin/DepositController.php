@@ -102,7 +102,8 @@ class DepositController extends Controller
             DB::commit();
 
             return redirect()->route('admin.deposits.create')
-                ->with('success', 'Setoran berhasil! Saldo nasabah bertambah Rp '.number_format($totalAmount, 0, ',', '.'));
+                ->with('success', 'Setoran berhasil! Saldo nasabah bertambah Rp '.number_format($totalAmount, 0, ',', '.'))
+                ->with('transaction_id', $transaction->id);
 
         } catch (\Exception $e) {
             DB::rollback();
